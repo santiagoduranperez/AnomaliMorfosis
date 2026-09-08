@@ -70,7 +70,10 @@ public static class GreyboxLevelBuilder
         CrearCubo("Pared_Celda_Norte_Izq", celda, new Vector3(-1.75f, 1.5f, 2f), new Vector3(0.5f, 3, 0.3f), matPared);
         CrearCubo("Pared_Celda_Norte_Der", celda, new Vector3(1.75f, 1.5f, 2f), new Vector3(0.5f, 3, 0.3f), matPared);
 
-        var camaGO = CrearCubo("Cama", celda, new Vector3(-1.2f, 0.25f, 1.2f), new Vector3(1, 0.5f, 2), matCama);
+        // Movido el 08/09 de (-1.2, 1.2) a (-0.8, 1): la posicion original pisaba el
+        // marco de la puerta norte (Pared_Celda_Norte_Izq), un bug visual/de colision
+        // que reporto el QA de Uxia ("la cama choca contra una columna").
+        var camaGO = CrearCubo("Cama", celda, new Vector3(-0.8f, 0.25f, 1f), new Vector3(1, 0.5f, 2), matCama);
         ConfigurarTrigger(camaGO);
         camaGO.AddComponent<Cama>();
 

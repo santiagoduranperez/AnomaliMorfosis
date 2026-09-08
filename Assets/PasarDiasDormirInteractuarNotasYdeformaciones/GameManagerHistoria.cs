@@ -80,7 +80,11 @@ public class GameManagerHistoria : MonoBehaviour
 
     private void Update()
     {
-        if (leyendoNota && Keyboard.current != null && Keyboard.current.kKey.wasPressedThisFrame)
+        // Se agrego F el 08/09 como alternativa a K (quedaba lejos para volver de una
+        // lectura), a pedido del QA de Uxia. K se deja funcionando igual para no romper
+        // el cartel "Volver (K)" que ya esta armado en la escena.
+        if (leyendoNota && Keyboard.current != null &&
+            (Keyboard.current.kKey.wasPressedThisFrame || Keyboard.current.fKey.wasPressedThisFrame))
         {
             CerrarLecturaDocumento();
         }
@@ -164,7 +168,21 @@ public class GameManagerHistoria : MonoBehaviour
     public void Dormir()
     {
         OcultarPrompt();
-        StartCoroutine(RutinaTransicionNoche());
+
+        // Agregado el 08/09: si ya es el ultimo dia con papel para recolectar, no hay
+        // mas dias que generar (ActualizarPapelesEnEscena no tiene mas papeles), asi
+        // que en vez de seguir el ciclo normal (que dejaba al jugador en un dia sin
+        // papel, sin ningun aviso) mostramos una pantalla de cierre. Detectado por el
+        // QA de Uxia: "al finalizar los 16 dias, el juego concluye pero no muestra
+        // ninguna pantalla de victoria".
+        if (diaActual >= papelesGameObjects.Length)
+        {
+            StartCoroutine(RutinaFinDelJuego());
+        }
+        else
+        {
+            StartCoroutine(RutinaTransicionNoche());
+        }
     }
 
     private IEnumerator RutinaTransicionNoche()
@@ -330,6 +348,33 @@ public class GameManagerHistoria : MonoBehaviour
         }
 
         procesandoGameOver = false;
+    }
+
+    // Agregado el 08/09 junto con el cambio en Dormir(): pantalla de cierre simple
+    // cuando se completan todos los dias del greybox. Reutiliza el mismo fadeScreenGroup
+    // y panelPromptInteractuar que ya existen (mismo criterio que RutinaGameOver), asi
+    // que no hace falta cablear nada nuevo en el Inspector ni tocar la escena.
+    private IEnumerator RutinaFinDelJuego()
+    {
+        Debug.Log("Fin del juego: se completaron todos los dias del greybox.");
+
+        if (fadeScreenGroup != null)
+        {
+            fadeScreenGroup.gameObject.SetActive(true);
+            fadeScreenGroup.transform.SetAsLastSibling();
+        }
+
+        float timer = 0f;
+        while (timer < duracionFade)
+        {
+            timer += Time.unscaledDeltaTime;
+            if (fadeScreenGroup != null)
+                fadeScreenGroup.alpha = Mathf.Lerp(0f, 1f, timer / duracionFade);
+            yield return null;
+        }
+        if (fadeScreenGroup != null) fadeScreenGroup.alpha = 1f;
+
+        MostrarPrompt($"FIN - sobreviviste {papelesGameObjects.Length} dias en la instalacion");
     }
 
     public void ActualizarEstadoUI()
