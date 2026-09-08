@@ -41,7 +41,10 @@ public class Cama : MonoBehaviour
                 }
                 else
                 {
-                    GameManagerHistoria.Instance.MostrarPrompt("Falta expediente");
+                    // Actualizado el 08/09: ahora tambien hace falta hablar con el
+                    // paciente amistoso antes de dormir (ver PuedeDormir), asi que el
+                    // mensaje ya no menciona solo el expediente.
+                    GameManagerHistoria.Instance.MostrarPrompt("Todavia te falta algo antes de dormir");
                 }
             }
         }

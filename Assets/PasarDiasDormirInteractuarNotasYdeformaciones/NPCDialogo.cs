@@ -32,6 +32,10 @@ public class NPCDialogo : MonoBehaviour
             if (frases.Length == 0 || GameManagerHistoria.Instance == null) return;
             GameManagerHistoria.Instance.AbrirLecturaTexto(frases[indiceFrase]);
             indiceFrase = (indiceFrase + 1) % frases.Length;
+
+            // Agregado el 08/09: hablar con el NPC amistoso pasa a ser, junto con el
+            // papel del dia, requisito para poder dormir (ver GameManagerHistoria.PuedeDormir).
+            GameManagerHistoria.Instance.RegistrarDialogoNpc();
         }
     }
 

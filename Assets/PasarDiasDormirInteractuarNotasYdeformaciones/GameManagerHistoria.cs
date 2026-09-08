@@ -52,6 +52,7 @@ public class GameManagerHistoria : MonoBehaviour
     private Expediente documentoActivo;
     private bool leyendoNota = false;
     private bool procesandoGameOver = false;
+    private bool hablasteConNpcHoy = false;
 
     private void Awake()
     {
@@ -162,7 +163,16 @@ public class GameManagerHistoria : MonoBehaviour
 
     public bool PuedeDormir()
     {
-        return papelesRecolectadosHoy >= ObtenerPapelesRequeridosHoy();
+        return papelesRecolectadosHoy >= ObtenerPapelesRequeridosHoy() && hablasteConNpcHoy;
+    }
+
+    // Llamado por NPCDialogo (solo el NPC amistoso, no el peligroso) cuando el jugador
+    // habla con el. Agregado el 08/09: antes se podia dormir con solo agarrar el papel,
+    // sin recorrer el resto de la sala, lo que dejaba partidas completas muy cortas
+    // (el QA de Uxia midio 4:03 en vez de los ~10 minutos que piden los profes).
+    public void RegistrarDialogoNpc()
+    {
+        hablasteConNpcHoy = true;
     }
 
     public void Dormir()
@@ -214,6 +224,7 @@ public class GameManagerHistoria : MonoBehaviour
         // 2. Avanza el día
         diaActual++;
         papelesRecolectadosHoy = 0;
+        hablasteConNpcHoy = false;
         vidaActual = vidaMaxima; // la vida no se recupera hasta dormir
 
         // 3. Aplica deformidad
