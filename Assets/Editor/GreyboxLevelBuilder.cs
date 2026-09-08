@@ -29,15 +29,21 @@ public static class GreyboxLevelBuilder
     [MenuItem("AnomaliMorfosis/Generar Nivel Greybox (Parcial 1)")]
     public static void GenerarNivel()
     {
-        var existente = GameObject.Find(RootName);
-        if (existente != null)
+        // Greybox_InstalacionPrincipal es padre de Canvas_UI, asi que se limpia solo.
+        // GameManagerHistoria y EventSystem quedan sueltos en la raiz de la escena
+        // (no son hijos de nada), asi que hay que buscarlos y borrarlos aparte o quedan
+        // duplicados cada vez que se regenera.
+        var existenteRoot = GameObject.Find(RootName);
+        var existenteGM = GameObject.Find("GameManagerHistoria");
+        if (existenteRoot != null || existenteGM != null)
         {
             bool regenerar = EditorUtility.DisplayDialog(
                 "Greybox ya existe",
-                $"Ya hay un objeto '{RootName}' en la escena. ¿Borrarlo y regenerarlo desde cero?",
+                "Ya hay un nivel generado en la escena (Greybox y/o GameManagerHistoria). ¿Borrar todo y regenerarlo desde cero?",
                 "Regenerar", "Cancelar");
             if (!regenerar) return;
-            Undo.DestroyObjectImmediate(existente);
+            if (existenteRoot != null) Undo.DestroyObjectImmediate(existenteRoot);
+            if (existenteGM != null) Undo.DestroyObjectImmediate(existenteGM);
         }
 
         Undo.SetCurrentGroupName("Generar Nivel Greybox");
