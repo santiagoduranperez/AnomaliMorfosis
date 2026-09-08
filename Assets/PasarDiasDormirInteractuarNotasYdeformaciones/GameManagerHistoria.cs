@@ -42,6 +42,13 @@ public class GameManagerHistoria : MonoBehaviour
     public float fuerzaSaltoActual = 8f;
     public bool modoDashDesbloqueado = false;
 
+    [Header("Vida (10 al inicio, no se recupera hasta dormir; baja a 3 tras la primera semana)")]
+    public int vidaMaxima = 10;
+    public int vidaActual = 10;
+
+    [Header("UI de Estado (dia / vida / papeles)")]
+    public TextMeshProUGUI textoEstadoUI;
+
     private Expediente documentoActivo;
     private bool leyendoNota = false;
 
@@ -67,6 +74,7 @@ public class GameManagerHistoria : MonoBehaviour
 
         OcultarPrompt();
         ActualizarPapelesEnEscena();
+        ActualizarEstadoUI();
     }
 
     private void Update()
@@ -118,6 +126,20 @@ public class GameManagerHistoria : MonoBehaviour
         Time.timeScale = 0f;
     }
 
+    // Igual que AbrirLecturaDocumento, pero para texto suelto (dialogo de NPC) que no
+    // se "recolecta" ni se desactiva al cerrar: se puede volver a hablar con el mismo NPC.
+    public void AbrirLecturaTexto(string texto)
+    {
+        OcultarPrompt();
+        documentoActivo = null;
+        if (imagenDocumentoUI != null) imagenDocumentoUI.sprite = null;
+        if (textoDocumentoUI != null) textoDocumentoUI.text = texto;
+
+        canvasLectura.SetActive(true);
+        leyendoNota = true;
+        Time.timeScale = 0f;
+    }
+
     public void CerrarLecturaDocumento()
     {
         canvasLectura.SetActive(false);
@@ -129,6 +151,7 @@ public class GameManagerHistoria : MonoBehaviour
             documentoActivo.OnRecogido();
             documentoActivo = null;
             papelesRecolectadosHoy++;
+            ActualizarEstadoUI();
         }
     }
 
@@ -172,9 +195,11 @@ public class GameManagerHistoria : MonoBehaviour
         // 2. Avanza el día
         diaActual++;
         papelesRecolectadosHoy = 0;
+        vidaActual = vidaMaxima; // la vida no se recupera hasta dormir
 
         // 3. Aplica deformidad
         AplicarMutacionYStats();
+        ActualizarEstadoUI();
 
         // 4. Respawn del jugador
         if (diaActual >= 7)
@@ -224,6 +249,26 @@ public class GameManagerHistoria : MonoBehaviour
 
         velocidadActual -= 0.5f;
         fuerzaSaltoActual -= 0.8f;
+
+        if (diaActual >= 7 && vidaMaxima > 3)
+        {
+            vidaMaxima = 3;
+            vidaActual = Mathf.Min(vidaActual, vidaMaxima);
+        }
+    }
+
+    // Resta vida al jugador (ej. al tocar a un paciente peligroso). La vida no se
+    // recupera sola: solo vuelve al maximo al dormir (ver RutinaTransicionNoche).
+    public void RecibirDano(int cantidad)
+    {
+        vidaActual = Mathf.Max(0, vidaActual - cantidad);
+        ActualizarEstadoUI();
+    }
+
+    public void ActualizarEstadoUI()
+    {
+        if (textoEstadoUI == null) return;
+        textoEstadoUI.text = $"Dia {diaActual}   Vida {vidaActual}/{vidaMaxima}   Papeles hoy {papelesRecolectadosHoy}/{ObtenerPapelesRequeridosHoy()}";
     }
 
     private void ActualizarPapelesEnEscena()

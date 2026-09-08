@@ -111,6 +111,25 @@ public static class GreyboxLevelBuilder
         var respawnOriginal = CrearParent("Respawn_Original", root.transform, new Vector3(0, 1, 0));
         var respawnDia7 = CrearParent("Respawn_Dia7", root.transform, new Vector3(0, 1, 15f));
 
+        // ---------- 4.5) NPCs (pacientes): uno amistoso con dialogo, uno peligroso que resta vida ----------
+        var matNpcAmistoso = CrearMaterial(new Color(0.3f, 0.55f, 0.35f));
+        var matNpcPeligroso = CrearMaterial(new Color(0.6f, 0.15f, 0.15f));
+
+        var npcAmistoso = CrearCapsula("Paciente_Amistoso", sala, new Vector3(-6f, 1f, -5f), matNpcAmistoso);
+        ConfigurarTrigger(npcAmistoso);
+        var dialogoAmistoso = npcAmistoso.AddComponent<NPCDialogo>();
+        dialogoAmistoso.frases = new[]
+        {
+            "Otro dia mas aca adentro... (dialogo pendiente: rol de Diseno de Juego / Narrativa)",
+            "Yo tambien vi cosas raras en el subsuelo. No bajes solo.",
+        };
+
+        var npcPeligroso = CrearCapsula("Paciente_Peligroso", sala, new Vector3(6f, 1f, -5f), matNpcPeligroso);
+        ConfigurarTrigger(npcPeligroso);
+        var dialogoPeligroso = npcPeligroso.AddComponent<NPCDialogo>();
+        dialogoPeligroso.esPeligroso = true;
+        dialogoPeligroso.danoAlTocar = 2;
+
         // ---------- 5) UI minima (Canvas + EventSystem) ----------
         var canvasGO = CrearCanvas(root.transform);
         var panelPrompt = CrearPanelPrompt(canvasGO.transform, out TextMeshProUGUI textoPrompt);
@@ -131,6 +150,9 @@ public static class GreyboxLevelBuilder
         gm.panelPromptInteractuar = panelPrompt;
         gm.textoPromptInteractuar = textoPrompt;
         gm.fadeScreenGroup = canvasGroup;
+
+        var textoEstado = CrearHudEstado(canvasGO.transform);
+        gm.textoEstadoUI = textoEstado;
 
         var player = GameObject.Find("Player");
         if (player != null)
@@ -159,7 +181,8 @@ public static class GreyboxLevelBuilder
             "2) El Player ya deberia quedar parado en Celda_Inicial (coincide con su posicion actual 0,1,0). Si no, moverlo ahi.\n" +
             "3) Probar con Play: caminar, saltar, agarrar Papel_Dia1 (tecla E), ir a la Cama y dormir (tecla E) una vez agarrado el papel.\n" +
             "4) El texto de cada expediente (Expediente.contenidoTexto) y el sprite (imagenNota) son placeholder: los completa Diseno de Juego / Narrativa (Christian).\n" +
-            "5) deformidadesCuerpo del GameManagerHistoria quedo vacio a proposito: son visuales de Arte (Kiara/Kiku), se agregan despues.");
+            "5) deformidadesCuerpo del GameManagerHistoria quedo vacio a proposito: son visuales de Arte (Kiara/Kiku), se agregan despues.\n" +
+            "6) Ahora hay un HUD arriba a la izquierda (dia/vida/papeles), y 2 NPCs en la Sala Principal: el verde (Paciente_Amistoso) da dialogo con E, el rojo (Paciente_Peligroso) resta 2 de vida al tocarlo.");
 
         Selection.activeGameObject = root;
     }
@@ -181,6 +204,18 @@ public static class GreyboxLevelBuilder
         go.transform.SetParent(padre.transform);
         go.transform.localPosition = posicionLocal;
         go.transform.localScale = escala;
+        var renderer = go.GetComponent<Renderer>();
+        if (renderer != null) renderer.sharedMaterial = material;
+        return go;
+    }
+
+    private static GameObject CrearCapsula(string nombre, GameObject padre, Vector3 posicionLocal, Material material)
+    {
+        var go = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+        go.name = nombre;
+        Undo.RegisterCreatedObjectUndo(go, "Generar Nivel Greybox");
+        go.transform.SetParent(padre.transform);
+        go.transform.localPosition = posicionLocal;
         var renderer = go.GetComponent<Renderer>();
         if (renderer != null) renderer.sharedMaterial = material;
         return go;
@@ -343,6 +378,27 @@ public static class GreyboxLevelBuilder
 
         go.SetActive(false); // GameManagerHistoria.Start() ya lo hace, esto es solo para que no se vea en el Editor
         return go;
+    }
+
+    private static TextMeshProUGUI CrearHudEstado(Transform canvas)
+    {
+        var go = new GameObject("HUD_Estado", typeof(RectTransform));
+        Undo.RegisterCreatedObjectUndo(go, "Generar Nivel Greybox");
+        go.transform.SetParent(canvas, false);
+
+        var rect = go.GetComponent<RectTransform>();
+        rect.anchorMin = new Vector2(0f, 1f);
+        rect.anchorMax = new Vector2(0f, 1f);
+        rect.pivot = new Vector2(0f, 1f);
+        rect.anchoredPosition = new Vector2(20, -20);
+        rect.sizeDelta = new Vector2(600, 40);
+
+        var texto = go.AddComponent<TextMeshProUGUI>();
+        texto.text = "Dia 1   Vida 10/10   Papeles hoy 0/1";
+        texto.alignment = TextAlignmentOptions.TopLeft;
+        texto.fontSize = 26;
+        texto.color = Color.white;
+        return texto;
     }
 
     private static void CrearEventSystemSiNoExiste()
