@@ -51,6 +51,7 @@ public class GameManagerHistoria : MonoBehaviour
 
     private Expediente documentoActivo;
     private bool leyendoNota = false;
+    private bool procesandoGameOver = false;
 
     private void Awake()
     {
@@ -258,11 +259,77 @@ public class GameManagerHistoria : MonoBehaviour
     }
 
     // Resta vida al jugador (ej. al tocar a un paciente peligroso). La vida no se
-    // recupera sola: solo vuelve al maximo al dormir (ver RutinaTransicionNoche).
+    // recupera sola: solo vuelve al maximo al dormir (ver RutinaTransicionNoche), o al
+    // llegar a 0 (ver RutinaGameOver).
     public void RecibirDano(int cantidad)
     {
         vidaActual = Mathf.Max(0, vidaActual - cantidad);
         ActualizarEstadoUI();
+
+        if (vidaActual <= 0 && !procesandoGameOver)
+        {
+            StartCoroutine(RutinaGameOver());
+        }
+    }
+
+    // Agregado el 08/09: hasta ahora la vida se quedaba en 0 sin que pasara nada.
+    // Cuando llega a 0: fade a negro, cartel de GAME OVER (reutiliza el mismo panel de
+    // "prompt" que ya existe, asi no hace falta cablear nada nuevo en el Inspector),
+    // y respawn con la vida llena en el punto de reaparicion del tramo actual (mismo
+    // criterio que usa el respawn nocturno en RutinaTransicionNoche).
+    private IEnumerator RutinaGameOver()
+    {
+        procesandoGameOver = true;
+        Debug.Log("🔴 GAME OVER: la vida llego a 0. Reiniciando con vida llena...");
+
+        if (fadeScreenGroup != null)
+        {
+            fadeScreenGroup.gameObject.SetActive(true);
+            fadeScreenGroup.transform.SetAsLastSibling();
+        }
+
+        float timer = 0f;
+        while (timer < duracionFade)
+        {
+            timer += Time.unscaledDeltaTime;
+            if (fadeScreenGroup != null)
+                fadeScreenGroup.alpha = Mathf.Lerp(0f, 1f, timer / duracionFade);
+            yield return null;
+        }
+        if (fadeScreenGroup != null) fadeScreenGroup.alpha = 1f;
+
+        MostrarPrompt("GAME OVER — recuperando fuerzas...");
+
+        vidaActual = vidaMaxima;
+        if (diaActual >= 7)
+        {
+            if (puntoRespawnDia7 != null) jugadorTransform.position = puntoRespawnDia7.position;
+        }
+        else
+        {
+            if (puntoRespawnOriginal != null) jugadorTransform.position = puntoRespawnOriginal.position;
+        }
+        ActualizarEstadoUI();
+
+        yield return new WaitForSecondsRealtime(1.2f);
+
+        OcultarPrompt();
+
+        timer = 0f;
+        while (timer < duracionFade)
+        {
+            timer += Time.unscaledDeltaTime;
+            if (fadeScreenGroup != null)
+                fadeScreenGroup.alpha = Mathf.Lerp(1f, 0f, timer / duracionFade);
+            yield return null;
+        }
+        if (fadeScreenGroup != null)
+        {
+            fadeScreenGroup.alpha = 0f;
+            fadeScreenGroup.gameObject.SetActive(false);
+        }
+
+        procesandoGameOver = false;
     }
 
     public void ActualizarEstadoUI()
