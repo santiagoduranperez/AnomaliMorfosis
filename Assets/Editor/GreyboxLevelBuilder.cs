@@ -93,19 +93,38 @@ public static class GreyboxLevelBuilder
         CrearCubo("Pared_Sala_Sur_Izq", sala, new Vector3(-5.75f, 2, -8f), new Vector3(8.5f, 4, 0.3f), matPared);
         CrearCubo("Pared_Sala_Sur_Der", sala, new Vector3(5.75f, 2, -8f), new Vector3(8.5f, 4, 0.3f), matPared);
 
-        float[] alturas = { 2.0f, 1.4f, 0.9f, 0.5f, 0.2f, 0.05f };
-        float[] posX = { -7f, -4.2f, -1.4f, 1.4f, 4.2f, 7f };
+        // Dias 1 a 6: alturas calculadas del salto real (mismo criterio de siempre).
+        // Dias 7 a 15: agregados el 08/09 (noche) para llegar a un playthrough de mas de
+        // 10 minutos, como pide la catedra. Desde el dia 7 el salto ya esta en 0 (ver
+        // CurrentJumpForce en PlayerMovement.cs), asi que estos 9 expedientes van al ras
+        // del piso (sin puzzle de altura): encaja con el High Concept, despues de perder
+        // el salto el desafio pasa a ser explorar/sobrevivir, no saltar.
+        float[] alturas =
+        {
+            2.0f, 1.4f, 0.9f, 0.5f, 0.2f, 0.05f,
+            0.05f, 0.05f, 0.05f, 0.05f, 0.05f, 0.05f, 0.05f, 0.05f, 0.05f,
+        };
+        float[] posX =
+        {
+            -7f, -4.2f, -1.4f, 1.4f, 4.2f, 7f,
+            -8.8f, -6.6f, -4.4f, -2.2f, 0f, 2.2f, 4.4f, 6.6f, 8.8f,
+        };
+        float[] posZ =
+        {
+            3f, 3f, 3f, 3f, 3f, 3f,
+            6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f, 6f,
+        };
         var papeles = new GameObject[alturas.Length];
 
         for (int i = 0; i < alturas.Length; i++)
         {
             int dia = i + 1;
             CrearCubo($"Plataforma_Dia{dia}", sala,
-                new Vector3(posX[i], alturas[i] / 2f, 3f),
+                new Vector3(posX[i], alturas[i] / 2f, posZ[i]),
                 new Vector3(1.6f, alturas[i], 1.6f), matPlataforma);
 
             var papelGO = CrearCubo($"Papel_Dia{dia}", sala,
-                new Vector3(posX[i], alturas[i] + 0.3f, 3f),
+                new Vector3(posX[i], alturas[i] + 0.3f, posZ[i]),
                 new Vector3(0.4f, 0.05f, 0.5f), matPapel);
             ConfigurarTrigger(papelGO);
             var expediente = papelGO.AddComponent<Expediente>();
@@ -185,7 +204,7 @@ public static class GreyboxLevelBuilder
         Debug.Log("Greybox + GameManagerHistoria + UI generados. Pendiente manual:\n" +
             "1) Si Unity muestra el dialogo 'Import TMP Essentials', aceptarlo (hace falta para que se vea el texto).\n" +
             "2) El Player ya deberia quedar parado en Celda_Inicial (coincide con su posicion actual 0,1,0). Si no, moverlo ahi.\n" +
-            "3) Probar con Play: caminar, saltar, agarrar Papel_Dia1 (tecla E), ir a la Cama y dormir (tecla E) una vez agarrado el papel.\n" +
+            "3) Probar con Play: caminar, saltar, agarrar Papel_Dia1 (tecla E), ir a la Cama y dormir (tecla E) una vez agarrado el papel. Ahora hay 15 dias/expedientes en vez de 6 (para llegar a mas de 10 minutos de juego).\n" +
             "4) El texto de cada expediente (Expediente.contenidoTexto) y el sprite (imagenNota) son placeholder: los completa Diseno de Juego / Narrativa (Christian).\n" +
             "5) deformidadesCuerpo del GameManagerHistoria quedo vacio a proposito: son visuales de Arte (Kiara/Kiku), se agregan despues.\n" +
             "6) Ahora hay un HUD arriba a la izquierda (dia/vida/papeles), y 2 NPCs en la Sala Principal: el verde (Paciente_Amistoso) da dialogo con E, el rojo (Paciente_Peligroso) resta 2 de vida al tocarlo.");
