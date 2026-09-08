@@ -16,9 +16,10 @@ using UnityEngine.InputSystem;
 // 5) Probar en Play: moverse con WASD / stick, saltar con Espacio / boton Sur.
 // 6) Ajustar moveSpeed, baseJumpForce y jumpDecayPerDay a gusto.
 //
-// currentDay es un valor hardcodeado por ahora (a proposito, para no bloquearse
-// esperando el sistema de dias de Christian). Cuando el este listo, reemplazar
-// esa variable por la referencia real al DayManager / GameState.
+// El salto degradable ahora se sincroniza automaticamente con el GameManagerHistoria
+// de Christian (su "diaActual") cuando ese script esta presente en la escena.
+// Si se prueba este script solo, en una escena sin GameManagerHistoria, usa el
+// valor "currentDay" hardcodeado del Inspector como respaldo.
 
 [RequireComponent(typeof(CharacterController))]
 [RequireComponent(typeof(PlayerInput))]
@@ -30,7 +31,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Salto degradable (mecanica central del High Concept)")]
     [SerializeField] private float baseJumpForce = 8f;
     [SerializeField] private float jumpDecayPerDay = 1.5f;
-    [SerializeField] private int currentDay = 0; // TODO: reemplazar por el DayManager cuando exista
+    [SerializeField] private int currentDay = 0; // Fallback cuando no hay GameManagerHistoria en la escena (ej. escena de prueba)
 
     [Header("Fisica manual (CharacterController no trae fisica propia)")]
     [SerializeField] private float gravity = -9.81f;
@@ -39,7 +40,14 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private float verticalVelocity;
 
-    private float CurrentJumpForce => Mathf.Max(0f, baseJumpForce - currentDay * jumpDecayPerDay);
+    // Dia 1 = sin degradacion todavia (diaActual arranca en 1 en el GameManagerHistoria).
+    // Si existe el GameManagerHistoria de Christian en la escena, se usa su diaActual
+    // real; si no (ej. escena de prueba sin el GameManager), se usa currentDay del Inspector.
+    private int DayForDecay => GameManagerHistoria.Instance != null
+        ? GameManagerHistoria.Instance.diaActual - 1
+        : currentDay;
+
+    private float CurrentJumpForce => Mathf.Max(0f, baseJumpForce - DayForDecay * jumpDecayPerDay);
 
     private void Awake()
     {
