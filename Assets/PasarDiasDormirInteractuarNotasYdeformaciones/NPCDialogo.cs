@@ -18,13 +18,30 @@ public class NPCDialogo : MonoBehaviour
     [Tooltip("Solo aplica si 'esPeligroso' esta tildado.")]
     public int danoAlTocar = 2;
 
+    [Header("Persecucion (opcional, solo si 'esPeligroso' esta tildado)")]
+    [Tooltip("Agregado el 09/09 a pedido de Uxia en el QA: antes el paciente peligroso se quedaba quieto todo el tiempo. Distancia a la que empieza a perseguir al jugador.")]
+    public float rangoDeteccion = 6f;
+    [Tooltip("Mas lenta que la velocidad base del jugador (5) para que siempre se pueda escapar corriendo.")]
+    public float velocidadPersecucion = 2.5f;
+
     private int indiceFrase = 0;
     private bool jugadorCerca = false;
     private bool yaHizoDano = false;
+    private Transform jugadorTransform;
+
+    private void Start()
+    {
+        var jugadorGO = GameObject.FindGameObjectWithTag("Player");
+        if (jugadorGO != null) jugadorTransform = jugadorGO.transform;
+    }
 
     private void Update()
     {
-        if (esPeligroso) return; // los peligrosos no dialogan, solo hacen dano al contacto
+        if (esPeligroso)
+        {
+            PerseguirSiElJugadorEstaCerca();
+            return; // los peligrosos no dialogan, solo persiguen y hacen dano al contacto
+        }
         if (Keyboard.current == null) return;
 
         if (jugadorCerca && Keyboard.current.eKey.wasPressedThisFrame)
@@ -37,6 +54,20 @@ public class NPCDialogo : MonoBehaviour
             // papel del dia, requisito para poder dormir (ver GameManagerHistoria.PuedeDormir).
             GameManagerHistoria.Instance.RegistrarDialogoNpc();
         }
+    }
+
+    // Agregado el 09/09: movimiento simple hacia el jugador dentro del rango de deteccion,
+    // sin NavMesh ni raycasts (IA basica, tal como pidieron los profes para el Parcial 1).
+    // Se mueve mas lento que el jugador, asi que siempre se puede escapar corriendo.
+    private void PerseguirSiElJugadorEstaCerca()
+    {
+        if (jugadorTransform == null) return;
+
+        float distancia = Vector3.Distance(transform.position, jugadorTransform.position);
+        if (distancia > rangoDeteccion) return;
+
+        Vector3 destino = new Vector3(jugadorTransform.position.x, transform.position.y, jugadorTransform.position.z);
+        transform.position = Vector3.MoveTowards(transform.position, destino, velocidadPersecucion * Time.deltaTime);
     }
 
     private bool EsJugador(Collider col)
