@@ -127,6 +127,7 @@ public class GameManagerHistoria : MonoBehaviour
         if (imagenDocumentoUI != null) imagenDocumentoUI.sprite = doc.imagenNota;
         if (textoDocumentoUI != null) textoDocumentoUI.text = doc.contenidoTexto;
 
+
         canvasLectura.SetActive(true);
         leyendoNota = true;
         Time.timeScale = 0f;
