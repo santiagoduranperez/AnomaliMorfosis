@@ -53,6 +53,11 @@ public class GameManagerHistoria : MonoBehaviour
     private bool leyendoNota = false;
     private bool procesandoGameOver = false;
     private bool hablasteConNpcHoy = false;
+    private Coroutine promptTemporalCoroutine;
+
+    [Header("Efecto de Anomalia (Instantiate en runtime, Clase 8)")]
+    [SerializeField] private float duracionEfectoAnomalia = 2.5f;
+    private GameObject efectoAnomaliaTemplate;
 
     private void Awake()
     {
@@ -77,6 +82,62 @@ public class GameManagerHistoria : MonoBehaviour
         OcultarPrompt();
         ActualizarPapelesEnEscena();
         ActualizarEstadoUI();
+        CrearTemplateEfectoAnomalia();
+    }
+
+    // Agregado el 10/09: crea (una sola vez, por codigo, sin depender de ningun Prefab
+    // de Assets) el "molde" que despues se clona con Instantiate cada vez que aparece
+    // una anomalia nueva (ver GenerarEfectoAnomalia). Queda desactivado: nunca se ve
+    // el template en si, solo sus clones.
+    private void CrearTemplateEfectoAnomalia()
+    {
+        efectoAnomaliaTemplate = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+        efectoAnomaliaTemplate.name = "EfectoAnomalia_Template";
+        efectoAnomaliaTemplate.transform.localScale = Vector3.one * 0.3f;
+
+        var colliderTemplate = efectoAnomaliaTemplate.GetComponent<Collider>();
+        if (colliderTemplate != null) Destroy(colliderTemplate); // es solo visual, no debe chocar con nada
+
+        var renderer = efectoAnomaliaTemplate.GetComponent<Renderer>();
+        if (renderer != null)
+        {
+            var mat = new Material(Shader.Find("Standard"));
+            mat.color = new Color(0.6f, 0.1f, 0.7f); // violeta enfermizo, acorde a la tematica
+            renderer.material = mat;
+        }
+
+        efectoAnomaliaTemplate.SetActive(false);
+    }
+
+    // Genera (Instantiate) un efecto visual pasajero cada vez que se aplica una
+    // deformidad nueva, y lo destruye solo unos segundos despues (Destroy con delay:
+    // "destruccion controlada de objetos", Clase 8). Se llama desde AplicarMutacionYStats.
+    private void GenerarEfectoAnomalia()
+    {
+        if (efectoAnomaliaTemplate == null || jugadorTransform == null) return;
+
+        Vector3 posicion = jugadorTransform.position + jugadorTransform.forward * 1f + Vector3.up * 1.5f;
+        GameObject clon = Instantiate(efectoAnomaliaTemplate, posicion, Quaternion.identity);
+        clon.SetActive(true);
+        Destroy(clon, duracionEfectoAnomalia);
+    }
+
+    // Agregado el 10/09: version del prompt de interaccion que se muestra sola por un
+    // tiempo fijo y se cierra sola, sin depender de que el jugador siga parado en un
+    // trigger (a diferencia de Cama/Expediente). La usa el Raycast de inspeccion a
+    // distancia de PlayerMovement.
+    public void MostrarPromptTemporal(string mensaje, float duracion)
+    {
+        if (promptTemporalCoroutine != null) StopCoroutine(promptTemporalCoroutine);
+        promptTemporalCoroutine = StartCoroutine(RutinaPromptTemporal(mensaje, duracion));
+    }
+
+    private IEnumerator RutinaPromptTemporal(string mensaje, float duracion)
+    {
+        MostrarPrompt(mensaje);
+        yield return new WaitForSeconds(duracion);
+        OcultarPrompt();
+        promptTemporalCoroutine = null;
     }
 
     private void Update()
@@ -276,6 +337,8 @@ public class GameManagerHistoria : MonoBehaviour
             if (deformidadesCuerpo[indiceDeformidad] != null)
                 deformidadesCuerpo[indiceDeformidad].SetActive(true);
         }
+
+        GenerarEfectoAnomalia();
 
         velocidadActual -= 0.5f;
         fuerzaSaltoActual -= 0.8f;

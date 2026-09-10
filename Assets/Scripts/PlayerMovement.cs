@@ -36,6 +36,10 @@ public class PlayerMovement : MonoBehaviour
     [Header("Fisica manual (CharacterController no trae fisica propia)")]
     [SerializeField] private float gravity = -9.81f;
 
+    [Header("Inspeccion a distancia (Raycast, Clase 5)")]
+    [Tooltip("Distancia maxima del Raycast de inspeccion, en metros.")]
+    [SerializeField] private float distanciaInspeccion = 6f;
+
     private CharacterController controller;
     private Vector2 moveInput;
     private float verticalVelocity;
@@ -58,6 +62,76 @@ public class PlayerMovement : MonoBehaviour
     {
         HandleGravityAndJump();
         HandleMovement();
+        HandleInspeccionRaycast();
+    }
+
+    // Agregado el 10/09: Raycast de inspeccion a distancia (Clase 5), con la tecla R.
+    // Primera version usaba transform.forward, pero el jugador no gira visualmente hacia
+    // donde camina (no hay ningun script que rote el modelo), asi que "apuntar" con la
+    // mirada no funcionaba. Se cambio por un enfoque mas robusto y muy usado en juegos
+    // reales: buscar el expediente o NPC mas cercano en CUALQUIER direccion, y tirar el
+    // Raycast derecho hacia el para confirmar que no hay una pared tapando la vista
+    // ("chequeo de linea de vista"). Sigue siendo un sistema aparte del de triggers que
+    // ya tienen Cama/Expediente/NPCDialogo: ese detecta por colision, este por Raycast.
+    private void HandleInspeccionRaycast()
+    {
+        if (Keyboard.current == null || !Keyboard.current.rKey.wasPressedThisFrame) return;
+        if (GameManagerHistoria.Instance == null) return;
+
+        Vector3 origen = transform.position + Vector3.up * 1f;
+        Transform objetivo = EncontrarObjetivoMasCercano(origen);
+
+        if (objetivo == null)
+        {
+            Debug.Log("🔵 [Raycast-R] No hay ningun expediente ni NPC dentro de " + distanciaInspeccion + "m.");
+            return;
+        }
+
+        Vector3 direccion = (objetivo.position - origen).normalized;
+
+        if (Physics.Raycast(origen, direccion, out RaycastHit hit, distanciaInspeccion))
+        {
+            Debug.Log($"🔵 [Raycast-R] Pego en: '{hit.collider.name}' a {hit.distance:F1}m");
+
+            var expediente = hit.collider.GetComponent<Expediente>();
+            var npc = hit.collider.GetComponent<NPCDialogo>();
+
+            if (expediente != null)
+                GameManagerHistoria.Instance.MostrarPromptTemporal("A lo lejos: parece un expediente medico.", 2f);
+            else if (npc != null)
+                GameManagerHistoria.Instance.MostrarPromptTemporal("A lo lejos: hay alguien ahi.", 2f);
+        }
+    }
+
+    // Recorre los Expediente y NPCDialogo activos en la escena y devuelve el mas cercano
+    // al jugador, siempre que este dentro de distanciaInspeccion. Se llama solo al
+    // presionar R (no todos los frames), asi que el costo es insignificante.
+    private Transform EncontrarObjetivoMasCercano(Vector3 origen)
+    {
+        Transform mejor = null;
+        float mejorDistancia = distanciaInspeccion;
+
+        foreach (var exp in Object.FindObjectsByType<Expediente>(FindObjectsSortMode.None))
+        {
+            float d = Vector3.Distance(origen, exp.transform.position);
+            if (d < mejorDistancia)
+            {
+                mejorDistancia = d;
+                mejor = exp.transform;
+            }
+        }
+
+        foreach (var npc in Object.FindObjectsByType<NPCDialogo>(FindObjectsSortMode.None))
+        {
+            float d = Vector3.Distance(origen, npc.transform.position);
+            if (d < mejorDistancia)
+            {
+                mejorDistancia = d;
+                mejor = npc.transform;
+            }
+        }
+
+        return mejor;
     }
 
     // Llamado automaticamente por PlayerInput (Behavior: Send Messages) con el valor de "Move"
