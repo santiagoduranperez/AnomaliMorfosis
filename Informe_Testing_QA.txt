@@ -1,0 +1,47 @@
+INFORME DE TESTING: 10 SEPTIEMBRE
+- Versión: Build post-feedback de greybox
+- Plataforma usada: PC / Editor de Unity (Windows)
+
+FUNCIONALIDADES VERIFICADAS:
+- Persecución del paciente agresivo (rojo) al acercarse al jugador.
+- Condición obligatoria de interactuar con el paciente amistoso (verde) antes de ir a dormir.
+- Pantalla de fin de juego tras completar los 16 días.
+- Progresión mecánica de saltos, reducción gradual de altura por día, Y reducción de vida máxima pasa de 10 a 3.
+- Recolección de expedientes y lectura con cierre de tecla F.
+
+RESULTADO DE CADA PRUEBA:
+
+- Persecución del paciente agresivo: La IA persigue al player generando buena tensión y dificultad, Pero sigue al player incluso dentro del cuarto privado, anulando una zona segura.
+
+-Bloqueo para dormir: Funciono perfectamente, obliga a cumplir el flujo de interacción antes de terminar el día.
+
+-Pantalla de fin: Funciona perfectamente al terminar el ciclo
+
+- Correcciones anteriores (Cama mas al centro, colisión de la cama, bug del piso): Funcionan perfectamente
+
+BUG ENCONTRADO:
+Desplazamiento de reaparición al iniciar el Día 14:
+
+Avanza la partida de manera normal hasta completar las acciones del día 13.
+
+Interactuar con el paciente verde y dirigirse a la cama para dormir.
+
+Al gestionar la accion de dormir y cargar el día 14, el player se levanta y aparece en el medio de la sala principal en vez de hacerlo en su cuarto privado.
+
+OBSERVACIONES SOBRE MOVIMIENTO, CAMARA, COLISIONES E INTERACCIONES:
+
+- Cámara: Muy bien ubicada, con una perspectiva mas cerca y adecuada a comparación de la primer versión.
+
+- Movimientos y Saltos: El movimiento mediante WASD es muy fluido y sin ningún retraso. Todo respeta al high concept con la perdida progresiva de salto y la aparición visual de tumores en el avatar.
+
+- Interacciones: La tecla E para interactuar tanto con el paciente y expedientes funciona a la perfección tal como la tecla F para cerra las interacciones. Como detalle a futuro los diálogos con el paciente podrían restringirse cronológicamente para que no se mezclen libremente si el jugador interactúa de mas 
+
+DURACION:
+El juego dura aproximadamente cerca de los 10 minutos (con interacciones y muertes), lo cual otorga una gran experiencia para el greybox
+
+SUGERENCIAS a FUTURO:
+- Restricción de IA en zonas seguras: Evitar que el paciente rojo pueda ingresar a la habitación del jugador o a la zona de la cama para que el descanso cumpla su función.
+
+- Penalización por muerte: Al morir el jugador hacer que pierda los expedientes recolectados en esa ronda y deba reiniciar la escena de búsqueda.
+
+

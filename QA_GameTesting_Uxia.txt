@@ -1,0 +1,46 @@
+Reporte de testing
+
+Observaciones generales y jugabilidad
+Cámara y Entorno: 
+	La cámara funciona correctamente pero se siente demasiado lejos del personaje; sugeriría ponerla un poco más cerca y, al ser un óvulo, no se observa bien si al mirar a la izquierda o derecha apunta exactamente hacia esos lados, pero eso lo dejaría más para futuro.
+
+	Sobre el entorno se siente bien y carga todo a la perfección, si detecte una superposición de suelos en la habitación del jugador durante todo el juego 	creando un pequeño bug visual.
+
+Colisiones y elementos:
+	El objeto azul (la cama) choca contra una columna, así que sugiero ubicarla un poco más al centro del cuarto por el momento.
+
+Movimiento y controles:
+ 	El movimiento en general es fluido y responde bien a las teclas WASD. Sobre el salto, al inicio (Día 1) sí parece un salto con mucha gravedad, pero al paso de los días el salto va disminuyendo y finalmente en el Día 7 ya casi no cuenta con salto, cumpliendo muy bien con el high concept.
+	
+	Sobre la tecla de salida K queda lejos y sugiero cambiarla por algo mas cerca como la tecla F o G ( a no ser que luego a futuro tenga habilidades de anomalía y se utilice la tecla F).
+
+Progreso y Tiempos de Juego
+Una partida de inicio a fin (desde el Día 1 al 16, incluyendo una muerte y el cierre de los días) tomó exactamente 4 minutos y 3 segundos.
+
+La cama funciona perfectamente para avanzar y la salud se recupera al dormir.
+
+A partir del día 7, la vida máxima (10) disminuye a 3, lo cual va de acuerdo con la progresión del personaje convirtiéndose en anomalía, tal cual describe el high concept.
+
+El paciente amigable responde con sus diálogos correspondientes, mientras que el paciente agresivo, aunque por el momento no tenga movilidad, sí inflige 2 de daño.
+
+Los expedientes se lograron capturar a lo largo de los diferentes días sin ningún bug (aunque requiere colocarse exactamente arriba de los expedientes para poder interactuar con ellos).
+
+Interfaz y HUD
+El HUD superior funciona correctamente mostrando el día actual, los papeles y la vida actual más el daño recibido del personaje.
+
+Al perder toda la vida aparece una pantalla en negro con el texto "Recuperando fuerzas", actuando como un reseteo de la escena actual. Como sugerencia a futuro, se podría sumar un tono visual un poco más rojizo para reforzar la atmósfera.
+
+Al finalizar los 16 días, el juego concluye pero no muestra ninguna pantalla de victoria o juego terminado, algo que sería importante añadir para dar un cierre más claro.
+
+Arte y Diseño
+Los assets básicos cargan correctamente en Unity sin errores de texturas.
+
+El diseño cumple de muy buena manera con la estructura inicial del greybox y la progresión de dificultad y anomalía atmosférica planteada en el High Concept, aunque a futuro requerirá la incorporación de los cuartos definitivos, las imágenes para los expedientes y las animaciones finales de los NPCs.
+
+Coherencia y Matching con el high concept
+El juego cumple muy bien con la idea propuesta; la reducción de vida y de salto tras los días refleja muy bien la sensación de desgaste y anomalía descrita en el documento.
+
+El loop de explorar, recolectar notas y dormir se alinea correctamente con la estructura del high concept.
+
+Al tratarse de un boceto greybox, la experiencia cumple con la prueba lógica, pero para tener más fidelidad con el documento recomendaría integrar los assets definitivos, las imágenes de los expedientes, animación o movilidad mínima de los NPCs y una pantalla de victoria para poder cerrar correctamente.
+
