@@ -494,6 +494,7 @@ MonoBehaviour:
   jumpDecayPerDay: 1.5
   currentDay: 0
   gravity: -9.81
+  distanciaInspeccion: 6
 --- !u!114 &32967183
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -6703,7 +6704,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1323270268
 RectTransform:
   m_ObjectHideFlags: 0
@@ -8090,6 +8091,7 @@ MonoBehaviour:
   vidaMaxima: 10
   vidaActual: 10
   textoEstadoUI: {fileID: 205972418}
+  duracionEfectoAnomalia: 2.5
 --- !u!4 &1486482919
 Transform:
   m_ObjectHideFlags: 0
