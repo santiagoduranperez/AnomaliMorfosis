@@ -1219,7 +1219,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!136 &201765557
 CapsuleCollider:
   m_ObjectHideFlags: 0
@@ -8083,7 +8083,7 @@ MonoBehaviour:
   - {fileID: 771898024}
   - {fileID: 2001485096}
   - {fileID: 1323738450}
-  - {fileID: 1496065989}
+  - {fileID: 201765556}
   - {fileID: 201765556}
   velocidadActual: 5
   fuerzaSaltoActual: 8
@@ -10377,7 +10377,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &2024027752
 Transform:
   m_ObjectHideFlags: 0
