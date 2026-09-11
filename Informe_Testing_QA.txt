@@ -1,8 +1,8 @@
 INFORME DE TESTING: 10 SEPTIEMBRE
 - Versión: Build post-feedback de greybox
+- Plataforma usada: PC / Editor de Unity (Windows)
 
 FUNCIONALIDADES VERIFICADAS:
-
 - Persecución del paciente agresivo (rojo) al acercarse al jugador.
 - Condición obligatoria de interactuar con el paciente amistoso (verde) antes de ir a dormir.
 - Pantalla de fin de juego tras completar los 16 días.
@@ -20,8 +20,13 @@ RESULTADO DE CADA PRUEBA:
 - Correcciones anteriores (Cama mas al centro, colisión de la cama, bug del piso): Funcionan perfectamente
 
 BUG ENCONTRADO:
+Desplazamiento de reaparición al iniciar el Día 14:
 
-Al terminar el día 13 y pasar al día 14, el player se levanta en el medio de la sala principal en vez de su cuarto
+Avanza la partida de manera normal hasta completar las acciones del día 13.
+
+Interactuar con el paciente verde y dirigirse a la cama para dormir.
+
+Al gestionar la accion de dormir y cargar el día 14, el player se levanta y aparece en el medio de la sala principal en vez de hacerlo en su cuarto privado.
 
 OBSERVACIONES SOBRE MOVIMIENTO, CAMARA, COLISIONES E INTERACCIONES:
 
