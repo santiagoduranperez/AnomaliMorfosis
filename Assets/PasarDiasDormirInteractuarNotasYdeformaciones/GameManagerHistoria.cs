@@ -54,6 +54,7 @@ public class GameManagerHistoria : MonoBehaviour
     private bool procesandoGameOver = false;
     private bool hablasteConNpcHoy = false;
     private Coroutine promptTemporalCoroutine;
+    private bool procesandoTransicion = false; // Evita el spam de presionar la E varias veces
 
     [Header("Efecto de Anomalia (Instantiate en runtime, Clase 8)")]
     [SerializeField] private float duracionEfectoAnomalia = 2.5f;
@@ -98,7 +99,7 @@ public class GameManagerHistoria : MonoBehaviour
         var colliderTemplate = efectoAnomaliaTemplate.GetComponent<Collider>();
         if (colliderTemplate != null) Destroy(colliderTemplate); // es solo visual, no debe chocar con nada
 
-        var renderer = efectoAnomaliaTemplate.GetComponent<Renderer>();
+        var renderer = efectoAnomaliaTemplate.GetComponent<SpriteRenderer>();
         if (renderer != null)
         {
             var mat = new Material(Shader.Find("Standard"));
@@ -225,6 +226,7 @@ public class GameManagerHistoria : MonoBehaviour
 
     public bool PuedeDormir()
     {
+        if (procesandoTransicion) return false; //si cambia de dia se bloquea presionar la E
         return papelesRecolectadosHoy >= ObtenerPapelesRequeridosHoy() && hablasteConNpcHoy;
     }
 
@@ -247,6 +249,11 @@ public class GameManagerHistoria : MonoBehaviour
         // papel, sin ningun aviso) mostramos una pantalla de cierre. Detectado por el
         // QA de Uxia: "al finalizar los 16 dias, el juego concluye pero no muestra
         // ninguna pantalla de victoria".
+        //Si apreto E mientras Transiciona, Ignora por completo
+        if (procesandoTransicion) return;
+
+        procesandoTransicion = true; // Se echa el candado inmediatamente al primer toque
+        OcultarPrompt();
         if (diaActual >= papelesGameObjects.Length)
         {
             StartCoroutine(RutinaFinDelJuego());
@@ -261,6 +268,9 @@ public class GameManagerHistoria : MonoBehaviour
     {
         Debug.Log("🟢 Iniciando transición de noche (Fade a negro)...");
 
+        // 1. Declaramos la variable 'timer' arriba de todo para que esté disponible en todo el método
+        float timer = 0f;
+
         if (fadeScreenGroup == null)
         {
             Debug.LogError("🔴 [ERROR] 'fadeScreenGroup' NO está asignado en el Inspector del GameManager.");
@@ -268,11 +278,10 @@ public class GameManagerHistoria : MonoBehaviour
         else
         {
             fadeScreenGroup.gameObject.SetActive(true);
-            fadeScreenGroup.transform.SetAsLastSibling(); // Obliga al panel negro a ir al frente de todo
+            fadeScreenGroup.transform.SetAsLastSibling();
         }
 
-        // 1. Pantalla negra (Fade Out usando tiempo independiente de Time.timeScale)
-        float timer = 0f;
+        // 2. Pantalla negra (Fade Out)
         while (timer < duracionFade)
         {
             timer += Time.unscaledDeltaTime;
@@ -283,23 +292,33 @@ public class GameManagerHistoria : MonoBehaviour
 
         if (fadeScreenGroup != null) fadeScreenGroup.alpha = 1f;
 
-        // 2. Avanza el día
+        // 3. Avanza el día
         diaActual++;
         papelesRecolectadosHoy = 0;
         hablasteConNpcHoy = false;
-        vidaActual = vidaMaxima; // la vida no se recupera hasta dormir
+        vidaActual = vidaMaxima;
 
-        // 3. Aplica deformidad
+        // 4. Aplica deformidad y estadísticas
         AplicarMutacionYStats();
         ActualizarEstadoUI();
 
-        // 4. Respawn del jugador
-        if (diaActual >= 7)
+        // Desbloqueo del Dash al llegar al Día 16
+        if (diaActual >= 16)
+        {
+            modoDashDesbloqueado = true;
+        }
+
+        // 5. Respawn del jugador y activación de atmósfera
+        if (diaActual >= 16)
         {
             if (puntoRespawnDia7 != null)
                 jugadorTransform.position = puntoRespawnDia7.position;
 
-            modoDashDesbloqueado = true;
+            AtmospheraDia16 atmosfera = FindAnyObjectByType<AtmospheraDia16>();
+            if (atmosfera != null)
+            {
+                atmosfera.ActivarAtmosceraJefe();
+            }
         }
         else
         {
@@ -311,7 +330,7 @@ public class GameManagerHistoria : MonoBehaviour
 
         yield return new WaitForSecondsRealtime(1f);
 
-        // 5. Vuelve la pantalla a la normalidad (Fade In)
+        // 6. Reiniciamos la variable timer (sin poner 'float' de nuevo) para el Fade In
         timer = 0f;
         while (timer < duracionFade)
         {
@@ -328,6 +347,11 @@ public class GameManagerHistoria : MonoBehaviour
         }
 
         Debug.Log($"🟢 Transición terminada. Ahora estás en el Día {diaActual}");
+
+        // Espera de seguridad de 6 segundos antes de volver a permitir la interacción con la cama
+        yield return new WaitForSecondsRealtime(6f);
+
+        procesandoTransicion = false;
     }
 
     private void AplicarMutacionYStats()
@@ -341,21 +365,36 @@ public class GameManagerHistoria : MonoBehaviour
 
         GenerarEfectoAnomalia();
 
-        velocidadActual -= 0.5f;
-        fuerzaSaltoActual -= 0.8f;
+        velocidadActual -= Mathf.Max(2.0f, velocidadActual - 0.2f);
+        // Fuerza del salto perdida por dias
+        if (diaActual >= 16)
+        {
+            fuerzaSaltoActual = 0f; // En el D6a 16 el salto se elimina por completo
+        }
+        else
+        {
+            // Del Dia 1 al 15, el salto baja gradualmente desde 8.0f hasta 0.5f
+            float pasoReduccion = 7.5f / 15f; // Resta 0.5 por día
+            fuerzaSaltoActual = 8f - ((diaActual - 1) * pasoReduccion);
+        }
 
-        if (diaActual >= 7 && vidaMaxima > 3)
+        if (diaActual >= 8 && vidaMaxima > 3)
         {
             vidaMaxima = 3;
             vidaActual = Mathf.Min(vidaActual, vidaMaxima);
         }
     }
 
-    // Resta vida al jugador (ej. al tocar a un paciente peligroso). La vida no se
-    // recupera sola: solo vuelve al maximo al dormir (ver RutinaTransicionNoche), o al
-    // llegar a 0 (ver RutinaGameOver).
+    // Resta vida al jugador (ej al tocar a un paciente peligroso) La vida no se
+    // recupera sola, solo vuelve al maximo al dormir o al llegar a 0
     public void RecibirDano(int cantidad)
     {
+        // Ignora el daño si el jugador esta en medio de un Dash (invulnerable)
+        if (PlayerMovement.Instance != null && PlayerMovement.Instance.EsInvulnerable)
+        {
+            return;
+        }
+
         vidaActual = Mathf.Max(0, vidaActual - cantidad);
         ActualizarEstadoUI();
 
@@ -394,7 +433,7 @@ public class GameManagerHistoria : MonoBehaviour
         MostrarPrompt("GAME OVER — recuperando fuerzas...");
 
         vidaActual = vidaMaxima;
-        if (diaActual >= 7)
+        if (diaActual >= 16)
         {
             if (puntoRespawnDia7 != null) jugadorTransform.position = puntoRespawnDia7.position;
         }
@@ -455,7 +494,7 @@ public class GameManagerHistoria : MonoBehaviour
     public void ActualizarEstadoUI()
     {
         if (textoEstadoUI == null) return;
-        textoEstadoUI.text = $"Dia {diaActual}   Vida {vidaActual}/{vidaMaxima}   Papeles hoy {papelesRecolectadosHoy}/{ObtenerPapelesRequeridosHoy()}";
+        textoEstadoUI.text = $"Dia {diaActual}    Vida {vidaActual}/{vidaMaxima}    Papeles hoy {papelesRecolectadosHoy}/{ObtenerPapelesRequeridosHoy()}";
     }
 
     private void ActualizarPapelesEnEscena()

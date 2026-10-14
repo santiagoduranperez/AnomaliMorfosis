@@ -3,9 +3,16 @@ using UnityEngine.InputSystem;
 
 public class CamaraFollow : MonoBehaviour
 {
+    [Header("Objetivo a seguir")]
     public Transform objetivo;
-    public Vector3 offset = new Vector3(0f, 2f, -5f);
+
+    [Header("Posición y Distancia")]
+    public Vector3 offset = new Vector3(0f, 1.5f, -3f);
     public float sensibilidadMouse = 2f;
+
+    [Header("Colisión con Paredes")]
+    public LayerMask capasColision; 
+    public float radioColision = 0.25f;
 
     private float rotacionX = 0f;
     private float rotacionY = 0f;
@@ -32,11 +39,24 @@ public class CamaraFollow : MonoBehaviour
             rotacionX = Mathf.Clamp(rotacionX, -30f, 60f);
         }
 
-        // Calcula la rotación y la nueva posición en órbita alrededor del cubo
         Quaternion rotacion = Quaternion.Euler(rotacionX, rotacionY, 0f);
-        transform.position = objetivo.position + rotacion * offset;
+        Vector3 puntoObjetivo = objetivo.position + Vector3.up * offset.y;
+        Vector3 direccionAtras = rotacion * new Vector3(0, 0, offset.z);
+        Vector3 posicionDeseada = puntoObjetivo + direccionAtras;
 
-        // La cámara siempre apunta hacia el objetivo
-        transform.LookAt(objetivo.position + Vector3.up * 1f);
+        // Sistema de colision: una esfera desde el personaje hacia la camara
+        Vector3 direccionRaycast = (posicionDeseada - puntoObjetivo).normalized;
+        float distanciaMax = Mathf.Abs(offset.z);
+
+        if (Physics.SphereCast(puntoObjetivo, radioColision, direccionRaycast, out RaycastHit hit, distanciaMax, capasColision))
+        { 
+            transform.position = puntoObjetivo + direccionRaycast * hit.distance;
+        }
+        else
+        {
+            transform.position = posicionDeseada;
+        }
+
+        transform.LookAt(puntoObjetivo);
     }
 }
