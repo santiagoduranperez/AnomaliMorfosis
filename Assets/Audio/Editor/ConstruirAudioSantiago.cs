@@ -26,6 +26,14 @@ public static class ConstruirAudioSantiago
 
         var viejo = GameObject.Find(RAIZ);
         if (viejo != null) Undo.DestroyObjectImmediate(viejo);
+        // Lo que quedó colgado del paciente en una corrida anterior también se borra.
+        var pac = GameObject.Find("Paciente_Amistoso");
+        if (pac != null)
+            foreach (var n in new[] { "3D_Radio_Paciente", "Voz_Paciente" })
+            {
+                var h = pac.transform.Find(n);
+                while (h != null) { Undo.DestroyObjectImmediate(h.gameObject); h = pac.transform.Find(n); }
+            }
         var raiz = new GameObject(RAIZ);
         Undo.RegisterCreatedObjectUndo(raiz, "Construir audio");
 
@@ -76,6 +84,28 @@ public static class ConstruirAudioSantiago
         sm.FindProperty("jugador").objectReferenceValue = tJug;
         sm.ApplyModifiedPropertiesWithoutUndo();
 
+
+        // ---------- A · integración de voces (Bloque E) + ducking ----------
+        AudioMixerGroup gVoz = Grupo(mixer, "Voz");
+        var gV = Hijo(raiz, "A_Voces_Integracion");
+        var vNarr = Fuente(gV, "Voz_Narrador_Altavoz", Vector3.zero, "", gVoz, 0f, 1f);
+        vNarr.loop = false; vNarr.playOnAwake = false;
+        GameObject vPacGo = amistoso != null ? amistoso : gV;
+        var vPac = Fuente(gV, "Voz_Paciente", vPacGo.transform.position + Vector3.up * 1.5f, "", gVoz, 1f, 1f);
+        vPac.loop = false; vPac.playOnAwake = false;
+        vPac.rolloffMode = AudioRolloffMode.Linear; vPac.minDistance = 1f; vPac.maxDistance = 10f;
+        if (amistoso != null) vPac.transform.SetParent(amistoso.transform, true);
+        var voz = gV.AddComponent<VozEventos>();
+        var sv = new SerializedObject(voz);
+        sv.FindProperty("vozNarradorAltavoz").objectReferenceValue = vNarr;
+        sv.FindProperty("vozPaciente").objectReferenceValue = vPac;
+        sv.FindProperty("jugador").objectReferenceValue = tJug;
+        sv.FindProperty("paciente").objectReferenceValue = amistoso != null ? amistoso.transform : null;
+        sv.FindProperty("mixer").objectReferenceValue = mixer;
+        sv.FindProperty("frasesPaciente").arraySize = 2;
+        sv.FindProperty("frasesAltavoz").arraySize = 2;
+        sv.ApplyModifiedPropertiesWithoutUndo();
+
         EditorSceneManager.MarkSceneDirty(raiz.scene);
         Selection.activeGameObject = raiz;
         Debug.Log($"Audio construido: 2 ambientes, 5 fuentes 3D, 3 capas de musica. Jugador={(tJug != null)} Subsuelo={bSub}");
@@ -90,8 +120,7 @@ public static class ConstruirAudioSantiago
     {
         var g = Hijo(p, n); g.transform.position = pos;
         var s = g.AddComponent<AudioSource>();
-        s.clip = AssetDatabase.LoadAssetAtPath<AudioClip>(clip);
-        if (s.clip == null) Debug.LogWarning("Falta el clip " + clip);
+        if (!string.IsNullOrEmpty(clip)) { s.clip = AssetDatabase.LoadAssetAtPath<AudioClip>(clip); if (s.clip == null) Debug.LogWarning("Falta el clip " + clip); }
         s.outputAudioMixerGroup = grupo; s.loop = true; s.playOnAwake = true;
         s.spatialBlend = blend; s.volume = vol; s.dopplerLevel = 0f;
         return s;
