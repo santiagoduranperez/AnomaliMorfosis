@@ -56,7 +56,7 @@ public class PlayerMovement : MonoBehaviour
 
     // Estado de Dash e Invulnerabilidad
     public bool EsInvulnerable { get; private set; } = false;
-    private bool estaHaciendoDash = false;
+    public bool estaHaciendoDash = false;
     private float timerCooldownDash = 0f;
 
     // Dia 1 = sin degradacion todavia (diaActual arranca en 1 en el GameManagerHistoria).
