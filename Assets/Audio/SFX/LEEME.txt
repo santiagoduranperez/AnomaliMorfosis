@@ -1,0 +1,2 @@
+Carpeta de sonidos: SFX
+Nombres: SFX_Descripcion_01.wav (sin espacios ni tildes)

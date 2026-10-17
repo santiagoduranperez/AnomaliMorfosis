@@ -1,0 +1,2 @@
+Carpeta de sonidos: Ambiente
+Nombres: Ambiente_Descripcion_01.wav (sin espacios ni tildes)

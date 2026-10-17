@@ -1,0 +1,2 @@
+Carpeta de sonidos: Voz
+Nombres: Voz_Descripcion_01.wav (sin espacios ni tildes)
