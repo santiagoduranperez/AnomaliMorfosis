@@ -1,3 +1,4 @@
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
@@ -25,6 +26,8 @@ using UnityEngine.InputSystem;
 [RequireComponent(typeof(PlayerInput))]
 public class PlayerMovement : MonoBehaviour
 {
+    public static PlayerMovement Instance { get; private set; }
+
     [Header("Movimiento")]
     [SerializeField] private float moveSpeed = 5f;
 
@@ -32,6 +35,13 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] private float baseJumpForce = 8f;
     [SerializeField] private float jumpDecayPerDay = 1.5f;
     [SerializeField] private int currentDay = 0; // Fallback cuando no hay GameManagerHistoria en la escena (ej. escena de prueba)
+
+    [Header("Habilidad DASH (Desbloqueable en Dia 16)")]
+    [SerializeField] private float velocidadDash = 18f;
+    [SerializeField] private float duracionDash = 0.25f;
+    [SerializeField] private float cooldownDash = 1.2f;
+    [Tooltip("Permite probar el Dash en cualquier dia sin esperar al Dia 16.")]
+    [SerializeField] private bool desbloquearDashParaPruebas = false;
 
     [Header("Fisica manual (CharacterController no trae fisica propia)")]
     [SerializeField] private float gravity = -9.81f;
@@ -44,6 +54,11 @@ public class PlayerMovement : MonoBehaviour
     private Vector2 moveInput;
     private float verticalVelocity;
 
+    // Estado de Dash e Invulnerabilidad
+    public bool EsInvulnerable { get; private set; } = false;
+    private bool estaHaciendoDash = false;
+    private float timerCooldownDash = 0f;
+
     // Dia 1 = sin degradacion todavia (diaActual arranca en 1 en el GameManagerHistoria).
     // Si existe el GameManagerHistoria de Christian en la escena, se usa su diaActual
     // real; si no (ej. escena de prueba sin el GameManager), se usa currentDay del Inspector.
@@ -55,14 +70,84 @@ public class PlayerMovement : MonoBehaviour
 
     private void Awake()
     {
+        if (Instance == null) Instance = this;
+        else Destroy(gameObject);
+
         controller = GetComponent<CharacterController>();
     }
 
     private void Update()
     {
-        HandleGravityAndJump();
-        HandleMovement();
-        HandleInspeccionRaycast();
+        if (timerCooldownDash > 0f)
+        {
+            timerCooldownDash -= Time.deltaTime;
+        }
+
+        // Deteccion de Shift para realizar el Dash
+        if (Keyboard.current != null && (Keyboard.current.leftShiftKey.wasPressedThisFrame || Keyboard.current.rightShiftKey.wasPressedThisFrame))
+        {
+            IntentarEfectuarDash();
+        }
+
+        if (!estaHaciendoDash)
+        {
+            HandleGravityAndJump();
+            HandleMovement();
+            HandleInspeccionRaycast();
+        }
+    }
+
+    private bool PuedeUsarDash()
+    {
+        if (desbloquearDashParaPruebas) return true;
+
+        if (GameManagerHistoria.Instance != null)
+        {
+            return GameManagerHistoria.Instance.modoDashDesbloqueado || GameManagerHistoria.Instance.diaActual >= 16;
+        }
+
+        return false;
+    }
+
+    private void IntentarEfectuarDash()
+    {
+        if (!PuedeUsarDash()) return;
+        if (estaHaciendoDash || timerCooldownDash > 0f) return;
+
+        StartCoroutine(RutinaDash());
+    }
+
+    private IEnumerator RutinaDash()
+    {
+        estaHaciendoDash = true;
+        EsInvulnerable = true;
+        timerCooldownDash = cooldownDash;
+
+        Vector3 camForward = Camera.main != null ? Camera.main.transform.forward : Vector3.forward;
+        Vector3 camRight = Camera.main != null ? Camera.main.transform.right : Vector3.right;
+        camForward.y = 0f;
+        camRight.y = 0f;
+        camForward.Normalize();
+        camRight.Normalize();
+
+        Vector3 moveDir = camForward * moveInput.y + camRight * moveInput.x;
+        Vector3 direccionDash = moveDir.sqrMagnitude > 0.01f ? moveDir.normalized : transform.forward;
+
+        transform.forward = direccionDash;
+
+        float timer = 0f;
+        while (timer < duracionDash)
+        {
+            timer += Time.deltaTime;
+            Vector3 desplazamiento = direccionDash * velocidadDash;
+            desplazamiento.y = -0.5f;
+
+            controller.Move(desplazamiento * Time.deltaTime);
+            yield return null;
+        }
+
+        estaHaciendoDash = false;
+        EsInvulnerable = false;
     }
 
     // Agregado el 10/09: Raycast de inspeccion a distancia (Clase 5), con la tecla R.
@@ -162,10 +247,28 @@ public class PlayerMovement : MonoBehaviour
 
     private void HandleMovement()
     {
-        Vector3 move = transform.forward * moveInput.y + transform.right * moveInput.x;
-        move.Normalize();
-        move *= moveSpeed;
+        Vector3 camForward = Vector3.forward;
+        Vector3 camRight = Vector3.right;
 
+        if (Camera.main != null)
+        {
+            camForward = Camera.main.transform.forward;
+            camRight = Camera.main.transform.right;
+            camForward.y = 0f;
+            camRight.y = 0f;
+            camForward.Normalize();
+            camRight.Normalize();
+        }
+
+        Vector3 move = camForward * moveInput.y + camRight * moveInput.x;
+
+        if (move.sqrMagnitude > 0.001f)
+        {
+            move.Normalize();
+            transform.forward = Vector3.Slerp(transform.forward, move, Time.deltaTime * 10f);
+        }
+
+        move *= moveSpeed;
         move.y = verticalVelocity;
 
         controller.Move(move * Time.deltaTime);
