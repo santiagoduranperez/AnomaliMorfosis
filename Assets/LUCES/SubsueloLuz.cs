@@ -3,24 +3,23 @@ using UnityEngine;
 
 public class AtmospheraDia16 : MonoBehaviour
 {
-    [Header("--- LUZ DIRECCIONAL ---")]
+    [Header("LUZ DIRECCIONAL")]
     [SerializeField] private Light luzDireccional;
     [SerializeField] private float intensidadOscura = 0.15f;
     [SerializeField] private Color colorLuzNoche = new Color(0.1f, 0.15f, 0.3f); // Azul frío/oscuro
 
-    [Header("--- NIEBLA DEL ENTORNO (RenderSettings) ---")]
+    [Header("NIEBLA DEL ENTORNO")]
     [SerializeField] private bool activarNiebla = true;
     [SerializeField] private Color colorNiebla = new Color(0.05f, 0.05f, 0.1f);
     [SerializeField] private float densidadNiebla = 0.04f;
 
-    [Header("--- EFECTO DE PARTÍCULAS ---")]
+    [Header("EFECTO DE PARTICULAS")]
     [SerializeField] private ParticleSystem particulasNieblaOBrusas;
 
-    [Header("--- TRANSICIÓN SUAVE ---")]
+    [Header("TRANSICION SUAVE")]
     [SerializeField] private float duracionTransicion = 2f;
 
     /// <summary>
-    /// Llama a este método al teletransportar al jugador al nivel del jefe.
     /// </summary>
     public void ActivarAtmosceraJefe()
     {
@@ -29,7 +28,7 @@ public class AtmospheraDia16 : MonoBehaviour
         // Activar niebla ambiental en Unity
         RenderSettings.fog = activarNiebla;
         RenderSettings.fogColor = colorNiebla;
-        RenderSettings.fogMode = FogMode.Exponential; // Corregido
+        RenderSettings.fogMode = FogMode.Exponential; 
         RenderSettings.fogDensity = densidadNiebla;
 
         // Reproducir partículas de humo/cenizas
