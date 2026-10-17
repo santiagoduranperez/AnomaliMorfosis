@@ -9422,6 +9422,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1486482919}
   - component: {fileID: 1486482918}
+  - component: {fileID: 1486482920}
   m_Layer: 0
   m_Name: GameManagerHistoria
   m_TagString: Untagged
@@ -9510,6 +9511,26 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1486482920
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1486482917}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: e1607a6cd7957f14b88ebf8a59ba1a0d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AudioDegradacion
+  mixer: {fileID: 24100000, guid: 4411d3b6f17bdb84182a9412079f7645, type: 2}
+  diaFinal: 16
+  corteDia1: 22000
+  corteDiaFinal: 1500
+  porcentajeCritico: 0.35
+  corteVidaNormal: 22000
+  corteVidaCritica: 600
+  velocidad: 3
 --- !u!1 &1496065989
 GameObject:
   m_ObjectHideFlags: 0
