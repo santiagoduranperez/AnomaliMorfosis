@@ -1,0 +1,2 @@
+Carpeta de sonidos: Musica
+Nombres: Musica_Descripcion_01.wav (sin espacios ni tildes)
