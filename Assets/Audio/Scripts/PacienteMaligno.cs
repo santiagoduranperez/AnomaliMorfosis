@@ -10,17 +10,19 @@ using UnityEngine.Audio;
 //  - Huesos que crujen mientras se mueve.
 //  - Chillido cuando te hace dano.
 //  - Ojos rojos con luz que parpadea; tiembla cuando lo miras.
-//  - Si lo miras se congela; si le das la espalda, parpadea y reaparece mas cerca.
+//  - Te persigue amenazando "te matare... jajaja"; si le das la espalda, parpadea y reaparece mas cerca.
+//    (opcional: congelarSiLoMiras = se queda quieto mientras lo miras)
 public class PacienteMaligno : MonoBehaviour
 {
     [Header("Sonidos (se cargan solos de Resources/Maligno)")]
-    public AudioClip grito, ataque, susurros;
+    public AudioClip grito, ataque, susurros, teMatare;
     public AudioClip[] huesos;
 
     [Header("Comportamiento")]
     public float silencioAntesDelGrito = 1.2f;
     public float esperaEntreGritos = 12f;
-    public bool congelarSiLoMiras = true;
+    public bool congelarSiLoMiras = false; // apagado: asi te persigue siempre
+    public float cadaCuantoAmenaza = 18f;   // repite "te matare" mientras te persigue
     public float cadaCuantoParpadea = 5f;
     public float distanciaParpadeo = 1.8f;
 
@@ -28,7 +30,7 @@ public class PacienteMaligno : MonoBehaviour
     AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito;
     Transform ojos; Light luzOjos;
     bool detectado, gritando;
-    float tUltimoGrito = -99f, tPaso, tParpadeo;
+    float tUltimoGrito = -99f, tPaso, tParpadeo, tAmenaza;
     Vector3 posAnterior; int vidaAnterior = -1;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -47,6 +49,7 @@ public class PacienteMaligno : MonoBehaviour
         if (grito == null) grito = Resources.Load<AudioClip>("Maligno/Maligno_Grito");
         if (ataque == null) ataque = Resources.Load<AudioClip>("Maligno/Maligno_Ataque");
         if (susurros == null) susurros = Resources.Load<AudioClip>("Maligno/Maligno_Susurros_Loop");
+        if (teMatare == null) teMatare = Resources.Load<AudioClip>("Maligno/Maligno_TeMatare");
         if (huesos == null || huesos.Length == 0) huesos = Resources.LoadAll<AudioClip>("Maligno/Huesos");
 
         AudioMixerGroup sfx = null;
@@ -106,6 +109,13 @@ public class PacienteMaligno : MonoBehaviour
             if (Time.time - tUltimoGrito > esperaEntreGritos) StartCoroutine(SilencioYGrito());
         }
         else if (detectado && dist > npc.rangoDeteccion * 1.6f) detectado = false;
+
+        // Amenaza "te matare... jajaja" mientras te persigue
+        if (detectado && !gritando && teMatare != null)
+        {
+            tAmenaza -= Time.deltaTime;
+            if (tAmenaza <= 0f) { fuenteGrito.PlayOneShot(teMatare); tAmenaza = cadaCuantoAmenaza; }
+        }
 
         // Huesos crujiendo mientras se mueve
         float vel = (transform.position - posAnterior).magnitude / Mathf.Max(Time.deltaTime, 0.0001f);
@@ -174,6 +184,7 @@ public class PacienteMaligno : MonoBehaviour
         luzOjos.intensity = 6f;
         if (grito != null) fuenteGrito.PlayOneShot(grito);
         Debug.Log("PacienteMaligno: GRITO");
+        tAmenaza = 3.2f; // despues del grito, a los 3 s: "te matare"
         yield return new WaitForSeconds(0.6f);
         gritando = false;
     }
