@@ -1,6 +1,5 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-
 // NPC basico de dialogo (paciente de la instalacion, rol de Diseno de Juego / Narrativa).
 // Reutiliza el mismo panel de lectura que los Expedientes (GameManagerHistoria.AbrirLecturaTexto),
 // pero a diferencia de Expediente.cs, el NPC no se desactiva al cerrar: se puede hablar
@@ -24,10 +23,13 @@ public class NPCDialogo : MonoBehaviour
     [Tooltip("Mas lenta que la velocidad base del jugador (5) para que siempre se pueda escapar corriendo.")]
     public float velocidadPersecucion = 2.5f;
 
+
     private int indiceFrase = 0;
     private bool jugadorCerca = false;
     private bool yaHizoDano = false;
     private Transform jugadorTransform;
+
+    private int diaUltimaInteraccion = -1; 
 
     private void Start()
     {
@@ -42,16 +44,29 @@ public class NPCDialogo : MonoBehaviour
             PerseguirSiElJugadorEstaCerca();
             return; // los peligrosos no dialogan, solo persiguen y hacen dano al contacto
         }
-        if (Keyboard.current == null) return;
+
+        if (Keyboard.current == null || GameManagerHistoria.Instance == null) return;
+
+        // Declaramos diaActual 
+        int diaActual = GameManagerHistoria.Instance.diaActual;
 
         if (jugadorCerca && Keyboard.current.eKey.wasPressedThisFrame)
         {
-            if (frases.Length == 0 || GameManagerHistoria.Instance == null) return;
+            if (frases.Length == 0) return;
+
+            // Si ya hablo, se bloquea, para evitar spam y mostrar otros dialogos
+            if (diaUltimaInteraccion == diaActual)
+            {
+                return;
+            }
+
+            // Marca que ya se interactuo
+            diaUltimaInteraccion = diaActual;
+
             GameManagerHistoria.Instance.AbrirLecturaTexto(frases[indiceFrase]);
             indiceFrase = (indiceFrase + 1) % frases.Length;
 
-            // Agregado el 08/09: hablar con el NPC amistoso pasa a ser, junto con el
-            // papel del dia, requisito para poder dormir (ver GameManagerHistoria.PuedeDormir).
+            // Agregado el 08/09: hablar con el NPC amistoso pasa a ser requisito para dormir
             GameManagerHistoria.Instance.RegistrarDialogoNpc();
         }
     }

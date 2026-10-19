@@ -3,6 +3,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
+using UnityEngine.Rendering;
 
 public class GameManagerHistoria : MonoBehaviour
 {
@@ -36,6 +37,11 @@ public class GameManagerHistoria : MonoBehaviour
 
     [Header("Transformacion")]
     public GameObject[] deformidadesCuerpo;
+
+    [Header("Particulas de mutacion")]
+    public ParticleSystem particulasMutacionJugador;
+    public float emisionDia8 = 0.7f; //empiezan
+    public float emisionDia16 = 10f; // se hacen mas continuas
 
     [Header("Estadísticas del Jugador")]
     public float velocidadActual = 5f;
@@ -97,6 +103,8 @@ public class GameManagerHistoria : MonoBehaviour
         ActualizarPapelesEnEscena();
         ActualizarEstadoUI();
         CrearTemplateEfectoAnomalia();
+
+        ActualizarEmisionParticulasMutacion();
     }
 
     // Agregado el 10/09: crea (una sola vez, por codigo, sin depender de ningun Prefab
@@ -379,6 +387,8 @@ public class GameManagerHistoria : MonoBehaviour
 
         GenerarEfectoAnomalia();
 
+        ActualizarEmisionParticulasMutacion();
+
         velocidadActual -= Mathf.Max(2.0f, velocidadActual - 0.2f);
         // Fuerza del salto perdida por dias
         if (diaActual >= 16)
@@ -397,6 +407,35 @@ public class GameManagerHistoria : MonoBehaviour
             vidaMaxima = 3;
             vidaActual = Mathf.Min(vidaActual, vidaMaxima);
         }
+    }
+
+    private void ActualizarEmisionParticulasMutacion()
+    {
+        if (particulasMutacionJugador == null) return;
+
+        var emission = particulasMutacionJugador.emission;
+
+        // Antes del dia 8 apagado
+        if (diaActual < 8)
+        {
+            emission.rateOverTime = 0f;
+            particulasMutacionJugador.Stop();
+            return;
+        }
+
+        // A partir del dia 8 activado
+        if (!particulasMutacionJugador.isPlaying)
+        {
+            particulasMutacionJugador.Play();
+        }
+
+        // Calcula la progresion entre dias
+        float progreso = (float)(diaActual - 8) / (16 - 8);
+        progreso = Mathf.Clamp01(progreso);
+
+        // Interpola las partículas por segundo
+        float tasaEmisionActual = Mathf.Lerp(emisionDia8, emisionDia16, progreso);
+        emission.rateOverTime = tasaEmisionActual;
     }
 
     // Resta vida al jugador (ej al tocar a un paciente peligroso) La vida no se
