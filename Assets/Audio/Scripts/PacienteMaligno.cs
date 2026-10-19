@@ -9,7 +9,8 @@ using UnityEngine.Audio;
 //  - Al detectarte: SILENCIO total (todo el audio se pausa) y despues un grito demoniaco.
 //  - Huesos que crujen mientras se mueve.
 //  - Chillido cuando te hace dano.
-//  - Ojos rojos con luz que parpadea; tiembla cuando lo miras.
+//  - Cuerpo propio armado con piezas: alto (2,4 m), flaco, encorvado, brazos larguisimos,
+//    cabeza torcida que da sacudones, boca abierta y ojos rojos con luz que parpadea.
 //  - Te persigue amenazando "te matare... jajaja"; si le das la espalda, parpadea y reaparece mas cerca.
 //    (opcional: congelarSiLoMiras = se queda quieto mientras lo miras)
 public class PacienteMaligno : MonoBehaviour
@@ -28,7 +29,8 @@ public class PacienteMaligno : MonoBehaviour
 
     NPCDialogo npc; Transform jugador; Camera cam; Renderer cuerpo;
     AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito;
-    Transform ojos; Light luzOjos;
+    Transform ojos, figura, cabeza, hombroI, hombroD; Light luzOjos;
+    float tSacudon; Quaternion rotCabezaObjetivo = Quaternion.Euler(0f, 0f, 35f);
     bool detectado, gritando;
     float tUltimoGrito = -99f, tPaso, tParpadeo, tAmenaza;
     Vector3 posAnterior; int vidaAnterior = -1;
@@ -61,7 +63,8 @@ public class PacienteMaligno : MonoBehaviour
         fuenteHuesos = Fuente(sfx, 1f, 1f, 16f, 0.8f);
         fuenteGrito = Fuente(sfx, 0.6f, 3f, 40f, 1f); fuenteGrito.ignoreListenerPause = true; // suena aunque todo este en silencio
 
-        if (cuerpo != null) cuerpo.material.color = new Color(0.05f, 0.04f, 0.04f);
+        if (cuerpo != null) cuerpo.enabled = false; // escondemos la capsula original
+        CrearFigura();
         CrearOjos();
         posAnterior = transform.position;
         if (GameManagerHistoria.Instance != null) vidaAnterior = GameManagerHistoria.Instance.vidaActual;
@@ -75,17 +78,72 @@ public class PacienteMaligno : MonoBehaviour
         return a;
     }
 
+    Material Mat(Color c, bool lit)
+    {
+        var sh = Shader.Find(lit ? "Universal Render Pipeline/Lit" : "Universal Render Pipeline/Unlit");
+        if (sh == null) sh = Shader.Find("Standard");
+        var m = new Material(sh); m.color = c;
+        if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.35f);
+        return m;
+    }
+
+    Transform Pieza(PrimitiveType tipo, Transform padre, Vector3 pos, Vector3 escala, Vector3 rot, Material m, string nombre)
+    {
+        var g = GameObject.CreatePrimitive(tipo); g.name = nombre; Destroy(g.GetComponent<Collider>());
+        g.transform.SetParent(padre, false); g.transform.localPosition = pos;
+        g.transform.localScale = escala; g.transform.localEulerAngles = rot;
+        g.GetComponent<Renderer>().material = m;
+        return g.transform;
+    }
+
+    Transform Pivote(string nombre, Transform padre, Vector3 pos)
+    {
+        var t = new GameObject(nombre).transform; t.SetParent(padre, false); t.localPosition = pos; return t;
+    }
+
+    // Figura humanoide perturbadora: piel palida y sucia, muy flaca, encorvada, brazos hasta las rodillas
+    void CrearFigura()
+    {
+        var piel = Mat(new Color(0.45f, 0.43f, 0.39f), true);
+        var oscuro = Mat(new Color(0.02f, 0.01f, 0.01f), false);
+        figura = Pivote("Figura_Maligna", transform, Vector3.zero);
+        var torso = Pivote("Torso", figura, new Vector3(0f, -0.1f, 0f)); torso.localEulerAngles = new Vector3(22f, 0f, 0f); // encorvado hacia vos
+        Pieza(PrimitiveType.Capsule, torso, new Vector3(0f, 0.55f, 0f), new Vector3(0.42f, 0.55f, 0.26f), Vector3.zero, piel, "Pecho");
+        for (int i = 0; i < 4; i++) // costillas marcadas
+            Pieza(PrimitiveType.Cube, torso, new Vector3(0f, 0.75f - i * 0.12f, 0.12f), new Vector3(0.36f - i * 0.02f, 0.02f, 0.04f), Vector3.zero, oscuro, "Costilla");
+        Pieza(PrimitiveType.Capsule, torso, new Vector3(0f, 1.15f, 0.02f), new Vector3(0.09f, 0.16f, 0.09f), new Vector3(0f, 0f, 12f), piel, "Cuello");
+        cabeza = Pivote("Cabeza", torso, new Vector3(0.03f, 1.3f, 0.04f));
+        Pieza(PrimitiveType.Sphere, cabeza, new Vector3(0f, 0.17f, 0f), new Vector3(0.3f, 0.42f, 0.32f), Vector3.zero, piel, "Craneo");
+        Pieza(PrimitiveType.Sphere, cabeza, new Vector3(-0.07f, 0.22f, 0.13f), new Vector3(0.1f, 0.08f, 0.06f), Vector3.zero, oscuro, "Cuenca_I");
+        Pieza(PrimitiveType.Sphere, cabeza, new Vector3(0.07f, 0.22f, 0.13f), new Vector3(0.1f, 0.08f, 0.06f), Vector3.zero, oscuro, "Cuenca_D");
+        Pieza(PrimitiveType.Sphere, cabeza, new Vector3(0f, 0.04f, 0.13f), new Vector3(0.13f, 0.2f, 0.06f), Vector3.zero, oscuro, "Boca_Abierta");
+        hombroI = Pivote("Hombro_I", torso, new Vector3(-0.27f, 0.95f, 0f));
+        hombroD = Pivote("Hombro_D", torso, new Vector3(0.27f, 0.95f, 0f));
+        foreach (var h in new[] { hombroI, hombroD })
+        {
+            float lado = h == hombroI ? -1f : 1f;
+            Pieza(PrimitiveType.Capsule, h, new Vector3(0.03f * lado, -0.38f, 0f), new Vector3(0.08f, 0.38f, 0.08f), new Vector3(0f, 0f, 6f * lado), piel, "Brazo");
+            Pieza(PrimitiveType.Capsule, h, new Vector3(0.07f * lado, -1.1f, 0.06f), new Vector3(0.065f, 0.4f, 0.065f), new Vector3(-8f, 0f, 3f * lado), piel, "Antebrazo");
+            for (int f = 0; f < 4; f++) // dedos largos y finos
+                Pieza(PrimitiveType.Capsule, h, new Vector3(0.07f * lado + (f - 1.5f) * 0.035f, -1.62f, 0.09f), new Vector3(0.022f, 0.14f, 0.022f), new Vector3(-10f, 0f, (f - 1.5f) * 6f), piel, "Dedo");
+        }
+        foreach (float x in new[] { -0.11f, 0.11f }) // piernas flacas
+        {
+            Pieza(PrimitiveType.Capsule, figura, new Vector3(x, -0.55f, -0.08f), new Vector3(0.1f, 0.48f, 0.1f), new Vector3(-6f, 0f, 0f), piel, "Pierna");
+        }
+    }
+
     void CrearOjos()
     {
-        ojos = new GameObject("Ojos_Malignos").transform; ojos.SetParent(transform, false);
-        ojos.localPosition = new Vector3(0f, 0.6f, 0.42f);
+        ojos = new GameObject("Ojos_Malignos").transform; ojos.SetParent(cabeza != null ? cabeza : transform, false);
+        ojos.localPosition = new Vector3(0f, 0.22f, 0.15f);
         var sh = Shader.Find("Universal Render Pipeline/Unlit"); if (sh == null) sh = Shader.Find("Sprites/Default");
         var mat = new Material(sh); mat.color = new Color(1f, 0.02f, 0.02f);
         foreach (float x in new[] { -0.16f, 0.16f })
         {
             var o = GameObject.CreatePrimitive(PrimitiveType.Sphere); Destroy(o.GetComponent<Collider>());
-            o.transform.SetParent(ojos, false); o.transform.localPosition = new Vector3(x, 0f, 0f);
-            o.transform.localScale = new Vector3(0.12f, 0.07f, 0.06f);
+            o.transform.SetParent(ojos, false); o.transform.localPosition = new Vector3(x * 0.45f, 0f, 0f);
+            o.transform.localScale = new Vector3(0.045f, 0.035f, 0.03f);
             o.GetComponent<Renderer>().material = mat;
         }
         luzOjos = new GameObject("Luz_Ojos").AddComponent<Light>(); luzOjos.transform.SetParent(ojos, false);
@@ -141,7 +199,8 @@ public class PacienteMaligno : MonoBehaviour
 
         // Si no lo miras, parpadea y reaparece mas cerca
         bool loVes = LoEstanMirando();
-        ojos.localPosition = new Vector3(0f, 0.6f, 0.42f) + (loVes && detectado ? Random.insideUnitSphere * 0.03f : Vector3.zero);
+        ojos.localPosition = new Vector3(0f, 0.22f, 0.15f);
+        AnimarFigura(dist);
         tParpadeo -= Time.deltaTime;
         if (detectado && !loVes && tParpadeo <= 0f && dist > distanciaParpadeo + 1.5f)
         {
@@ -189,14 +248,32 @@ public class PacienteMaligno : MonoBehaviour
         gritando = false;
     }
 
+    // Movimientos a sacudones: la cabeza se tuerce de golpe, los brazos se balancean y tiemblan
+    void AnimarFigura(float dist)
+    {
+        if (figura == null) return;
+        tSacudon -= Time.deltaTime;
+        if (tSacudon <= 0f)
+        {
+            rotCabezaObjetivo = Quaternion.Euler(Random.Range(-15f, 25f), Random.Range(-30f, 30f), Random.Range(-55f, 55f));
+            tSacudon = detectado ? Random.Range(0.15f, 0.7f) : Random.Range(0.8f, 2.5f);
+        }
+        cabeza.localRotation = Quaternion.Slerp(cabeza.localRotation, rotCabezaObjetivo, Time.deltaTime * 22f); // giro brusco
+        float t = Time.time;
+        float temblor = detectado ? 6f : 1.5f;
+        hombroI.localEulerAngles = new Vector3(Mathf.Sin(t * 1.3f) * 12f + Random.Range(-temblor, temblor), 0f, -4f);
+        hombroD.localEulerAngles = new Vector3(Mathf.Sin(t * 1.3f + 2f) * 12f + Random.Range(-temblor, temblor), 0f, 4f);
+        figura.localPosition = detectado ? Random.insideUnitSphere * 0.02f : Vector3.zero;
+    }
+
     IEnumerator Parpadear()
     {
-        if (cuerpo != null) cuerpo.enabled = false; ojos.gameObject.SetActive(false);
+        figura.gameObject.SetActive(false);
         yield return new WaitForSeconds(0.12f);
         Vector3 hacia = jugador.position - transform.position; hacia.y = 0f;
         transform.position += hacia.normalized * distanciaParpadeo;
         posAnterior = transform.position;
-        if (cuerpo != null) cuerpo.enabled = true; ojos.gameObject.SetActive(true);
+        figura.gameObject.SetActive(true);
     }
 
     void OnDisable() { AudioListener.pause = false; }
