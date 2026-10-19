@@ -18,6 +18,8 @@ public class AmbienteZonas : MonoBehaviour
     [SerializeField] private Bounds zonaSubsuelo;              // la arma el constructor
     [SerializeField] private float volumenInstalacion = 0.55f;
     [SerializeField] private float volumenSubsuelo = 0.7f;
+    [Tooltip("Volumen general de ambientes y fuentes 3D (0.8 = 20% mas bajo)")]
+    public float volumenGeneral = 0.8f;
     [SerializeField, Min(0.1f)] private float segundosFundido = 2.5f;
 
     // La música adaptativa lee esto para saber si el jugador bajó al subsuelo.
@@ -26,6 +28,9 @@ public class AmbienteZonas : MonoBehaviour
     void Start()
     {
         JugadorEnSubsuelo = false;
+        volumenInstalacion *= volumenGeneral; volumenSubsuelo *= volumenGeneral;
+        foreach (var f in FindObjectsByType<AudioSource>())          // fuentes 3D del bloque D, 20% mas bajas
+            if (f.gameObject.name.StartsWith("3D_")) f.volume *= volumenGeneral;
         ambienteInstalacion.volume = volumenInstalacion;
         ambienteSubsuelo.volume = 0f;
     }

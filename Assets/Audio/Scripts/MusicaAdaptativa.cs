@@ -37,6 +37,8 @@ public class MusicaAdaptativa : MonoBehaviour
     [SerializeField] private Vector3 mezclaCalma       = new Vector3(0.6f, 0f,   0f);
     [SerializeField] private Vector3 mezclaTension     = new Vector3(0.35f, 0.7f, 0f);
     [SerializeField] private Vector3 mezclaPersecucion = new Vector3(0.15f, 0.5f, 0.8f);
+    [Tooltip("Volumen general de la musica (0.8 = 20% mas baja, para que se escuchen los pacientes)")]
+    public float volumenGeneral = 0.8f;
 
     public Estado EstadoActual { get; private set; } = Estado.Calma;
 
@@ -72,9 +74,9 @@ public class MusicaAdaptativa : MonoBehaviour
                          : EstadoActual == Estado.Tension ? mezclaTension
                          : mezclaCalma;
         float paso = Time.deltaTime / tiempoFundido;
-        capaCalma.volume       = Mathf.MoveTowards(capaCalma.volume,       objetivo.x, paso);
-        capaTension.volume     = Mathf.MoveTowards(capaTension.volume,     objetivo.y, paso);
-        capaPersecucion.volume = Mathf.MoveTowards(capaPersecucion.volume, objetivo.z, paso);
+        capaCalma.volume       = Mathf.MoveTowards(capaCalma.volume,       objetivo.x * volumenGeneral, paso);
+        capaTension.volume     = Mathf.MoveTowards(capaTension.volume,     objetivo.y * volumenGeneral, paso);
+        capaPersecucion.volume = Mathf.MoveTowards(capaPersecucion.volume, objetivo.z * volumenGeneral, paso);
     }
 
     private Estado CalcularEstado()
@@ -103,6 +105,6 @@ public class MusicaAdaptativa : MonoBehaviour
 
     private void AplicarInstantaneo(Vector3 m)
     {
-        capaCalma.volume = m.x; capaTension.volume = m.y; capaPersecucion.volume = m.z;
+        capaCalma.volume = m.x * volumenGeneral; capaTension.volume = m.y * volumenGeneral; capaPersecucion.volume = m.z * volumenGeneral;
     }
 }

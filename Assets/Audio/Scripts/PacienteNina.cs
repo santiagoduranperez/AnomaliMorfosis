@@ -13,7 +13,8 @@ using UnityEngine.Audio;
 public class PacienteNina : MonoBehaviour
 {
     public AudioClip llanto;
-    public float volumenLlanto = 0.8f;
+    public float volumenLlanto = 1f;
+    public float volumenRadio = 0.25f; // la radio pegada a ella tapaba el llanto
     public float distanciaCalma = 2.5f;
     public float distanciaMiedo = 10f;
 
@@ -40,10 +41,11 @@ public class PacienteNina : MonoBehaviour
         fuenteLlanto = gameObject.AddComponent<AudioSource>();
         fuenteLlanto.outputAudioMixerGroup = sfx; fuenteLlanto.clip = llanto; fuenteLlanto.loop = true;
         fuenteLlanto.spatialBlend = 1f; fuenteLlanto.rolloffMode = AudioRolloffMode.Linear;
-        fuenteLlanto.minDistance = 1f; fuenteLlanto.maxDistance = 14f; fuenteLlanto.dopplerLevel = 0f;
+        fuenteLlanto.minDistance = 2.5f; fuenteLlanto.maxDistance = 18f; fuenteLlanto.dopplerLevel = 0f;
         fuenteLlanto.volume = volumenLlanto;
         if (llanto != null) { fuenteLlanto.time = Random.Range(0f, llanto.length * 0.9f); fuenteLlanto.Play(); }
 
+        foreach (var a in GetComponentsInChildren<AudioSource>()) if (a.gameObject.name.Contains("Radio")) a.volume = volumenRadio;
         capsula = GetComponent<Renderer>(); if (capsula != null) capsula.enabled = false;
         CrearFigura();
     }
