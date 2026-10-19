@@ -55,6 +55,17 @@ public class EnemigoJefe : MonoBehaviour
     private int indicePuntoActual = 0;
     private bool esperandoEnPunto = false;
 
+    [Header("AUDIO SFX")]
+    [SerializeField] private AudioSource fuenteAudio;
+    [SerializeField] private AudioClip[] clipsPatrulla;   // Sonido mientras merodea 
+    [SerializeField] private AudioClip clipDeteccion;  // Sonido cuando persigue
+    [SerializeField] private AudioClip clipTacleada; //sonido de la tacleada
+    [SerializeField] private AudioClip clipSalto; //Sonido de salto
+    [SerializeField] private AudioClip clipDisparo; //Sonido de disparo
+    [SerializeField] private float tiempoMinPatrullaSFX = 4f; // Tiempo min entre sonidos de patrullaje
+    [SerializeField] private float tiempoMaxPatrullaSFX = 8f; // Tiempo max entre sonidos de patrullaje
+    private float timerPatrullaSFX = 0f;
+
     private Transform jugadorTransform;
     private EstadoEnemigo estadoActual = EstadoEnemigo.Persiguiendo;
     private NavMeshAgent agent;
@@ -70,12 +81,20 @@ public class EnemigoJefe : MonoBehaviour
     private Vector3 direccionTacleada;
     private bool yaHizoDanoEnTacleada = false;
 
+    //control interno de audio
+    private bool estabaPersiguiendo = false;
+
     private void Start()
     {
         agent = GetComponent<NavMeshAgent>();
         if (agent != null)
         {
             agent.speed = velocidadBase;
+        }
+
+        if (fuenteAudio == null)
+        {
+            fuenteAudio = GetComponent<AudioSource>();
         }
 
         var jugadorGO = GameObject.FindGameObjectWithTag("Player");
@@ -142,6 +161,16 @@ public class EnemigoJefe : MonoBehaviour
             PatrullarFueraDeRango();
             return;
         }
+        // MANEJO DE AUDIO AL DETECTAR AL JUGADOR
+        if (!estabaPersiguiendo)
+        {
+            estabaPersiguiendo = true;
+            if (fuenteAudio != null && clipDeteccion != null)
+            {
+                fuenteAudio.Stop(); // Detiene cualquier sonido de patrulla
+                fuenteAudio.PlayOneShot(clipDeteccion); // suena el grito
+            }
+        }
 
         // SI EL JUGADOR ENTRA EN RANGO: PERSEGUIR Y ATACAR
         esperandoEnPunto = false; // Cancela la espera si venía patrullando
@@ -179,6 +208,26 @@ public class EnemigoJefe : MonoBehaviour
 
     private void PatrullarFueraDeRango()
     {
+        // MANEJO DE AUDIO AL PERDER DE VISTA AL JUGADOR
+        if (estabaPersiguiendo)
+        {
+            estabaPersiguiendo = false;
+            if (fuenteAudio != null) fuenteAudio.Stop();
+            timerPatrullaSFX = 0f;
+        }
+        if (clipsPatrulla != null && clipsPatrulla.Length > 0 && fuenteAudio != null) //sonidos aleatorios en su estado "Idle"
+        {
+            timerPatrullaSFX -= Time.deltaTime;
+            if (timerPatrullaSFX <= 0f)
+            {
+                // Elige un audio al azar
+                AudioClip clipAzar = clipsPatrulla[Random.Range(0, clipsPatrulla.Length)];
+                fuenteAudio.PlayOneShot(clipAzar);
+
+                // Programa el siguiente tiempo aleatorio
+                timerPatrullaSFX = Random.Range(tiempoMinPatrullaSFX, tiempoMaxPatrullaSFX);
+            }
+        }
         if (puntosPatrulla == null || puntosPatrulla.Count == 0)
         {
             if (agent != null && agent.enabled) agent.isStopped = true;
@@ -192,6 +241,19 @@ public class EnemigoJefe : MonoBehaviour
         if (!esperandoEnPunto && !agent.pathPending && agent.remainingDistance <= 0.8f)
         {
             StartCoroutine(RutinaEsperarPuntoJefe());
+        }
+    }
+
+    private void ReproducirAudioEstado(AudioClip clip, bool enBucle)
+    {
+        if (fuenteAudio == null || clip == null) return;
+
+        if (fuenteAudio.clip != clip)
+        {
+            fuenteAudio.Stop();
+            fuenteAudio.clip = clip;
+            fuenteAudio.loop = enBucle;
+            fuenteAudio.Play();
         }
     }
 
@@ -257,6 +319,7 @@ public class EnemigoJefe : MonoBehaviour
             estadoActual = EstadoEnemigo.Tacleando;
             timerEstado = duracionTacleada;
             yaHizoDanoEnTacleada = false;
+            SonarJefe(clipTacleada);
         }
     }
 
@@ -302,6 +365,7 @@ public class EnemigoJefe : MonoBehaviour
         timerEstado = duracionSalto;
         timerCooldownSalto = cooldownSalto;
         posicionInicialY = transform.position.y;
+        SonarJefe(clipSalto);
     }
 
     private void EjecutarSalto()
@@ -319,6 +383,7 @@ public class EnemigoJefe : MonoBehaviour
         transform.position = nuevaPosicion;
         transform.LookAt(destinoHorizontal);
 
+
         if (timerEstado <= 0f)
         {
             ActivarNavMesh();
@@ -333,6 +398,10 @@ public class EnemigoJefe : MonoBehaviour
         timerEstado = tiempoFrenoDisparo;
         timerCooldownDisparo = cooldownDisparo;
 
+        if (fuenteAudio != null && clipDisparo != null)
+        {
+            fuenteAudio.PlayOneShot(clipDisparo);
+        }
         // Orientar horizontalmente al jefe hacia el jugador
         Vector3 mirarA = new Vector3(jugadorTransform.position.x, transform.position.y, jugadorTransform.position.z);
         transform.LookAt(mirarA);
@@ -390,5 +459,11 @@ public class EnemigoJefe : MonoBehaviour
         // Visualizar el rango de detección en la vista de Escena
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, rangoDeteccion);
+    }
+    private void SonarJefe(AudioClip clip)
+    {
+        if (fuenteAudio == null || clip == null) return;
+        fuenteAudio.pitch = Random.Range(1f,1.08f); // Varía sutilmente el tono
+        fuenteAudio.PlayOneShot(clip, Random.Range(0.9f, 1f));
     }
 }

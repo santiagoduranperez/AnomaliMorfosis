@@ -50,6 +50,17 @@ public class PlayerMovement : MonoBehaviour
     [Tooltip("Distancia maxima del Raycast de inspeccion, en metros.")]
     [SerializeField] private float distanciaInspeccion = 6f;
 
+    [Header("Audio SFX")]
+    [SerializeField] private AudioSource fuenteSFX;
+    [SerializeField] private AudioClip[] clipsPasos; // Variaciones de pasos
+    [SerializeField] private AudioClip[] clipsPasosTransformados; //al dia 16 suenan otros pasos
+    [SerializeField] private AudioClip clipSalto;
+    [SerializeField] private AudioClip clipDash;
+
+    // Timer interno para el intervalo de pasos
+    private float timerPasos = 0f;
+    [SerializeField] private float intervaloBasePasos = 0.45f; // Cada 0,45 s suenan los pasos
+
     private CharacterController controller;
     private Vector2 moveInput;
     private float verticalVelocity;
@@ -122,6 +133,8 @@ public class PlayerMovement : MonoBehaviour
         estaHaciendoDash = true;
         EsInvulnerable = true;
         timerCooldownDash = cooldownDash;
+
+        SonarSFX(clipDash); // sonido del DASH
 
         Vector3 camForward = Camera.main != null ? Camera.main.transform.forward : Vector3.forward;
         Vector3 camRight = Camera.main != null ? Camera.main.transform.right : Vector3.right;
@@ -231,6 +244,7 @@ public class PlayerMovement : MonoBehaviour
         if (value.isPressed && controller.isGrounded && CurrentJumpForce > 0f)
         {
             verticalVelocity = CurrentJumpForce;
+            SonarSFX(clipSalto); //sonido del salto
         }
     }
 
@@ -272,5 +286,50 @@ public class PlayerMovement : MonoBehaviour
         move.y = verticalVelocity;
 
         controller.Move(move * Time.deltaTime);
+        //Sonidos al caminar
+        if (controller.isGrounded && moveInput.sqrMagnitude > 0.1f)
+        {
+            bool estaTransformado = GameManagerHistoria.Instance != null && GameManagerHistoria.Instance.diaActual >= 16; //si es el dia 16 suena distinto
+            float intervaloDinamico = intervaloBasePasos;
+            // Calcula la velocidad del jugador para quedar acorde con el audio
+            if (!estaTransformado)
+            {
+                float velocidadRef = 5f;
+                float factorVelocidad = Mathf.Max(0.2f, GameManagerHistoria.Instance != null ? GameManagerHistoria.Instance.velocidadActual / velocidadRef : 1f);
+                intervaloDinamico = intervaloBasePasos / factorVelocidad;
+            }
+
+            timerPasos -= Time.deltaTime;
+            if (timerPasos <= 0f)
+            {
+                if (estaTransformado && clipsPasosTransformados != null && clipsPasosTransformados.Length > 0)
+                {
+                    SonarSFX(clipsPasosTransformados); // Suenan los pasos pesados/transformados
+                }
+                else
+                {
+                    SonarSFX(clipsPasos); // Suenan los pasos normales
+                }
+                timerPasos = intervaloDinamico; // Se adapta a lo lento que camina
+            }
+        }
+        else
+        {
+            timerPasos = 0f;
+        }
+    }
+    // PARTE DE AUDIOS
+    private void SonarSFX(AudioClip clip) 
+    {
+        if (fuenteSFX == null || clip == null) return;
+        fuenteSFX.pitch = Random.Range(0.96f, 1.04f); // Variacion de tono
+        fuenteSFX.PlayOneShot(clip, Random.Range(0.9f, 1f)); // Variacion de volumen
+    }
+
+    private void SonarSFX(AudioClip[] clips)
+    {
+        if (fuenteSFX == null || clips == null || clips.Length == 0) return;
+        AudioClip clipElegido = clips[Random.Range(0, clips.Length)];
+        SonarSFX(clipElegido);
     }
 }

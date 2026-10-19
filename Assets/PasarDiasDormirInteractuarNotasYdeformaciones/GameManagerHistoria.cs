@@ -49,6 +49,11 @@ public class GameManagerHistoria : MonoBehaviour
     [Header("UI de Estado (dia / vida / papeles)")]
     public TextMeshProUGUI textoEstadoUI;
 
+    [Header("Audio General")]
+    [SerializeField] private AudioSource fuenteSFXGeneral;
+    [SerializeField] private AudioClip clipAgarrarPapel;
+    [SerializeField] private AudioClip clipDormirCama;
+
     private Expediente documentoActivo;
     private bool leyendoNota = false;
     private bool procesandoGameOver = false;
@@ -60,6 +65,14 @@ public class GameManagerHistoria : MonoBehaviour
     [SerializeField] private float duracionEfectoAnomalia = 2.5f;
     private GameObject efectoAnomaliaTemplate;
 
+    // Método universal para reproducir SFX sueltos desde otros scripts
+    public void ReproducirSFX(AudioClip clip)
+    {
+        if (fuenteSFXGeneral != null && clip != null)
+        {
+            fuenteSFXGeneral.PlayOneShot(clip);
+        }
+    }
     private void Awake()
     {
         if (Instance == null) Instance = this;
@@ -188,7 +201,7 @@ public class GameManagerHistoria : MonoBehaviour
         documentoActivo = doc;
         if (imagenDocumentoUI != null) imagenDocumentoUI.sprite = doc.imagenNota;
         if (textoDocumentoUI != null) textoDocumentoUI.text = doc.contenidoTexto;
-
+        ReproducirSFX(clipAgarrarPapel);
 
         canvasLectura.SetActive(true);
         leyendoNota = true;
@@ -254,6 +267,7 @@ public class GameManagerHistoria : MonoBehaviour
 
         procesandoTransicion = true; // Se echa el candado inmediatamente al primer toque
         OcultarPrompt();
+        ReproducirSFX(clipDormirCama); //Sonido de la cama
         if (diaActual >= papelesGameObjects.Length)
         {
             StartCoroutine(RutinaFinDelJuego());
