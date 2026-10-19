@@ -59,7 +59,7 @@ public class PlayerMovement : MonoBehaviour
 
     // Timer interno para el intervalo de pasos
     private float timerPasos = 0f;
-    [SerializeField] private float intervaloBasePasos = 0.45f; // Cada 0,45 s suenan los pasos
+    [SerializeField] private float intervaloBasePasos = 0.32f; // Cada 0,45 s suenan los pasos
 
     private CharacterController controller;
     private Vector2 moveInput;
@@ -289,13 +289,13 @@ public class PlayerMovement : MonoBehaviour
         //Sonidos al caminar
         if (controller.isGrounded && moveInput.sqrMagnitude > 0.1f)
         {
-            bool estaTransformado = GameManagerHistoria.Instance != null && GameManagerHistoria.Instance.diaActual >= 16; //si es el dia 16 suena distinto
+            bool estaTransformado = GameManagerHistoria.Instance != null && GameManagerHistoria.Instance.diaActual >= 16;
             float intervaloDinamico = intervaloBasePasos;
-            // Calcula la velocidad del jugador para quedar acorde con el audio
+
             if (!estaTransformado)
             {
-                float velocidadRef = 5f;
-                float factorVelocidad = Mathf.Max(0.2f, GameManagerHistoria.Instance != null ? GameManagerHistoria.Instance.velocidadActual / velocidadRef : 1f);
+                float velocidadReal = new Vector3(controller.velocity.x, 0f, controller.velocity.z).magnitude;
+                float factorVelocidad = Mathf.Max(0.5f, velocidadReal / 5f);
                 intervaloDinamico = intervaloBasePasos / factorVelocidad;
             }
 
@@ -304,13 +304,13 @@ public class PlayerMovement : MonoBehaviour
             {
                 if (estaTransformado && clipsPasosTransformados != null && clipsPasosTransformados.Length > 0)
                 {
-                    SonarSFX(clipsPasosTransformados); // Suenan los pasos pesados/transformados
+                    SonarSFX(clipsPasosTransformados);
                 }
                 else
                 {
-                    SonarSFX(clipsPasos); // Suenan los pasos normales
+                    SonarSFX(clipsPasos);
                 }
-                timerPasos = intervaloDinamico; // Se adapta a lo lento que camina
+                timerPasos = intervaloDinamico;
             }
         }
         else
