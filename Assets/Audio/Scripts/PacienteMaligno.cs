@@ -28,7 +28,7 @@ public class PacienteMaligno : MonoBehaviour
     public float distanciaParpadeo = 1.8f;
 
     NPCDialogo npc; Transform jugador; Camera cam; Renderer cuerpo;
-    AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito;
+    AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito, fuenteAmenaza; MusicaAdaptativa musica;
     Transform ojos, figura, cabeza, hombroI, hombroD; Light luzOjos;
     float tSacudon; Quaternion rotCabezaObjetivo = Quaternion.Euler(0f, 0f, 35f);
     bool detectado, gritando;
@@ -61,7 +61,9 @@ public class PacienteMaligno : MonoBehaviour
         fuenteSusurros = Fuente(sfx, 1f, 1f, 14f, 0.9f); fuenteSusurros.loop = true; fuenteSusurros.clip = susurros;
         if (susurros != null) fuenteSusurros.Play();
         fuenteHuesos = Fuente(sfx, 1f, 1f, 16f, 0.8f);
-        fuenteGrito = Fuente(sfx, 0.4f, 4f, 45f, 1f); fuenteGrito.ignoreListenerPause = true; // suena aunque todo este en silencio
+        fuenteGrito = Fuente(sfx, 0.4f, 4f, 45f, 1f); fuenteGrito.ignoreListenerPause = true;
+        fuenteAmenaza = Fuente(sfx, 0f, 1f, 50f, 1f); fuenteAmenaza.ignoreListenerPause = true; // "te matare" en 2D, como al oido
+        musica = FindAnyObjectByType<MusicaAdaptativa>(); // suena aunque todo este en silencio
 
         if (cuerpo != null) cuerpo.enabled = false; // escondemos la capsula original
         CrearFigura();
@@ -174,7 +176,7 @@ public class PacienteMaligno : MonoBehaviour
             tAmenaza -= Time.deltaTime;
             if (tAmenaza <= 0f && teMatare != null)
             {
-                fuenteGrito.PlayOneShot(teMatare); tAmenaza = cadaCuantoAmenaza; amenazaPendiente = false;
+                StartCoroutine(Amenazar()); tAmenaza = cadaCuantoAmenaza; amenazaPendiente = false;
                 Debug.Log("PacienteMaligno: TE MATARE (voz de Kiara)");
             }
         }
@@ -268,6 +270,19 @@ public class PacienteMaligno : MonoBehaviour
         hombroI.localEulerAngles = new Vector3(Mathf.Sin(t * 1.3f) * 12f + Random.Range(-temblor, temblor), 0f, -4f);
         hombroD.localEulerAngles = new Vector3(Mathf.Sin(t * 1.3f + 2f) * 12f + Random.Range(-temblor, temblor), 0f, 4f);
         figura.localPosition = detectado ? Random.insideUnitSphere * 0.02f : Vector3.zero;
+    }
+
+    // "te matare" de Kiara: suena al frente y la musica baja mientras habla (ducking)
+    IEnumerator Amenazar()
+    {
+        fuenteAmenaza.PlayOneShot(teMatare);
+        if (musica != null)
+        {
+            float original = musica.volumenGeneral;
+            musica.volumenGeneral = original * 0.3f;
+            yield return new WaitForSeconds(teMatare.length * 0.8f);
+            musica.volumenGeneral = original;
+        }
     }
 
     IEnumerator Parpadear()
