@@ -8,6 +8,9 @@ public class Expediente : MonoBehaviour
     [TextArea(3, 6)]
     public string contenidoTexto;
 
+    [Header("Audio")]
+    [SerializeField] private AudioClip clipAudioPapel;
+
     private bool jugadorCerca = false;
 
     private void Update()
@@ -22,6 +25,10 @@ public class Expediente : MonoBehaviour
 
     public void OnRecogido()
     {
+        if (GameManagerHistoria.Instance != null && clipAudioPapel != null) //para que suene
+        {
+            GameManagerHistoria.Instance.ReproducirSFX(clipAudioPapel);
+        }
         GameManagerHistoria.Instance.OcultarPrompt();
         gameObject.SetActive(false);
     }

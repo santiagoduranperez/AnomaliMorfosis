@@ -140,6 +140,8 @@ AudioMixerController:
   m_ExposedParameters:
   - guid: 7645feb4982ecf440b8e56d3ad35495b
     name: CorteAmbiente
+  - guid: 07c299b615db7854eaad2abf8b7fd421
+    name: VolumenMusica
   - guid: eb2d8f5c9b818ab4da0fd29fc204e2a7
     name: CorteMusica
   m_AudioMixerGroupViews:
