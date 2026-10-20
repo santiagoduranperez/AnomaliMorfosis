@@ -39,6 +39,8 @@ public class MusicaAdaptativa : MonoBehaviour
     [SerializeField] private Vector3 mezclaPersecucion = new Vector3(0.15f, 0.5f, 0.8f);
     [Tooltip("Volumen general de la musica (0.8 = 20% mas baja, para que se escuchen los pacientes)")]
     public float volumenGeneral = 0.8f;
+    [Tooltip("Refuerzo de volumen cuando hay peligro (Tension y Persecucion): 1.35 = 35% mas fuerte")]
+    public float refuerzoPeligro = 1.35f;
 
     public Estado EstadoActual { get; private set; } = Estado.Calma;
 
@@ -74,9 +76,10 @@ public class MusicaAdaptativa : MonoBehaviour
                          : EstadoActual == Estado.Tension ? mezclaTension
                          : mezclaCalma;
         float paso = Time.deltaTime / tiempoFundido;
-        capaCalma.volume       = Mathf.MoveTowards(capaCalma.volume,       objetivo.x * volumenGeneral, paso);
-        capaTension.volume     = Mathf.MoveTowards(capaTension.volume,     objetivo.y * volumenGeneral, paso);
-        capaPersecucion.volume = Mathf.MoveTowards(capaPersecucion.volume, objetivo.z * volumenGeneral, paso);
+        float vol = volumenGeneral * (EstadoActual == Estado.Calma ? 1f : refuerzoPeligro); // la musica de peligro se impone
+        capaCalma.volume       = Mathf.MoveTowards(capaCalma.volume,       objetivo.x * vol, paso);
+        capaTension.volume     = Mathf.MoveTowards(capaTension.volume,     objetivo.y * vol, paso);
+        capaPersecucion.volume = Mathf.MoveTowards(capaPersecucion.volume, objetivo.z * vol, paso);
     }
 
     private Estado CalcularEstado()
