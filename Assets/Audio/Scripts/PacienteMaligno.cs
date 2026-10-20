@@ -32,7 +32,7 @@ public class PacienteMaligno : MonoBehaviour
     Transform ojos, figura, cabeza, hombroI, hombroD; Light luzOjos;
     float tSacudon; Quaternion rotCabezaObjetivo = Quaternion.Euler(0f, 0f, 35f);
     bool detectado, gritando;
-    float tUltimoGrito = -99f, tPaso, tParpadeo, tAmenaza;
+    float tUltimoGrito = -99f, tPaso, tParpadeo, tAmenaza; bool amenazaPendiente;
     Vector3 posAnterior; int vidaAnterior = -1;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -61,7 +61,7 @@ public class PacienteMaligno : MonoBehaviour
         fuenteSusurros = Fuente(sfx, 1f, 1f, 14f, 0.9f); fuenteSusurros.loop = true; fuenteSusurros.clip = susurros;
         if (susurros != null) fuenteSusurros.Play();
         fuenteHuesos = Fuente(sfx, 1f, 1f, 16f, 0.8f);
-        fuenteGrito = Fuente(sfx, 0.6f, 3f, 40f, 1f); fuenteGrito.ignoreListenerPause = true; // suena aunque todo este en silencio
+        fuenteGrito = Fuente(sfx, 0.4f, 4f, 45f, 1f); fuenteGrito.ignoreListenerPause = true; // suena aunque todo este en silencio
 
         if (cuerpo != null) cuerpo.enabled = false; // escondemos la capsula original
         CrearFigura();
@@ -169,10 +169,14 @@ public class PacienteMaligno : MonoBehaviour
         else if (detectado && dist > npc.rangoDeteccion * 1.6f) detectado = false;
 
         // Amenaza "te matare... jajaja" mientras te persigue
-        if (detectado && !gritando && teMatare != null)
+        if (amenazaPendiente || (detectado && !gritando && teMatare != null))
         {
             tAmenaza -= Time.deltaTime;
-            if (tAmenaza <= 0f) { fuenteGrito.PlayOneShot(teMatare); tAmenaza = cadaCuantoAmenaza; }
+            if (tAmenaza <= 0f && teMatare != null)
+            {
+                fuenteGrito.PlayOneShot(teMatare); tAmenaza = cadaCuantoAmenaza; amenazaPendiente = false;
+                Debug.Log("PacienteMaligno: TE MATARE (voz de Kiara)");
+            }
         }
 
         // Huesos crujiendo mientras se mueve
@@ -243,7 +247,7 @@ public class PacienteMaligno : MonoBehaviour
         luzOjos.intensity = 6f;
         if (grito != null) fuenteGrito.PlayOneShot(grito);
         Debug.Log("PacienteMaligno: GRITO");
-        tAmenaza = 3.2f; // despues del grito, a los 3 s: "te matare"
+        tAmenaza = 2.9f; amenazaPendiente = true; // despues del grito: "te matare" (suena aunque escapes)
         yield return new WaitForSeconds(0.6f);
         gritando = false;
     }
