@@ -1,0 +1,59 @@
+INFORME DE QA TESTING — AVANCE PARCIAL 2
+Proyecto: Anomalimorfosis
+Tester: Uxía Daniela Abrigo Perolini
+Duración aproximada: 9 a 10 minutos
+Fecha:20/10/2026
+
+MECANICAS Y PROGRESION VISUAL
+- Cámara: Control y comportamiento fluido, giro de 360 grados y seguimiento sin errores ni bugs detectados.
+
+- Evolución del modelo: Progresión visible del personaje al avanzar los días (brazos mas largos en el Dia 8 y deformaciones progresivas por tumores).
+
+- Retraso de instanciado: Los tumores/deformaciones tardan un poco de tiempo en cargarse en el modelo del jugador.
+
+- Ambientación y Assets: Incorporación de mesas quirúrgicas (puntos de cartas/notas), tanques de oxigeno y elementos de escenografía.
+
+- Animaciones activas para el personaje de la paciente/chica y para el enemigo.
+
+- Iluminación con luces parpadeantes y guía lumínica de ruta accesible.
+
+-  Feedback auditivo / SFX: Sonido ambiental constante, feedback de ruido cuando el monstruo atrapa al jugador y buen balance general de volumen.
+
+-----------------------------------------------------
+
+REGISTROS DE BUGS
+
+Fallo / Inconsistencia en la Carga de la Escena Final (Bosses):
+En el primer game test, el juego hizo la transición correctamente a una sala final de escape con 3 jefes/monstruos. Sin embargo, en pruebas posteriores y tras reiniciar el motor, el juego omitió esta transición y finalizo en el loop tradicional del dia 15 (agarrar la carta e interactuar). Eso se tendría que chequear.
+
+IA de Persecución / NavMesh / Teleport del Monstruo:
+Mientras que el monstruo hace la acciona de perseguir al personaje, si el enemigo colisiona con elementos del entorno ,sufre una traba y se teletransporta cerca del jugador, haciendo que este pueda llegar a perder una vida.
+
+
+Camilla:
+Se agrego la camilla nueva pero no tiene asignado el script de interacción ni el trigger para dormir/pasar de día. También la cama anterior a la que agregaron ahora sigue estando  ocasionando que este el cubo y la camilla a la vez generando un impacto visual.
+
+Modelos Placeholders en Inicio
+Estado: En desarrollo
+Al alcanzar la etapa final del juego, cuando el personaje ya está completamente convertido en monstruo, el modelo 3D pierde su apariencia visual y se renderiza como una malla base tipo óvalo/cápsula. 
+Esta corrección ya se está trabajando para ser integrada en el próximo update.
+
+------------------------------------------------------------
+
+FEEDBACK UX, MENUS Y BALANCES (SUGERENCIAS)
+
+Sistema de Pausa y UI General (Win / Game Over):
+Ausencia del menu de pausa al presionar la tecla estandar (ESC). Falta la interfaz final de UI de resultado (Win / Game Over) cuando se logra escapar o al morir. 
+Esta funcionalidad ya esta siendo desarrollada para el próximo update.
+
+
+Zona Segura (Safe Zone) en la Habitación: 
+Hacer que la habitación del jugador (donde esta la cama) sea una Safe Zone impenetrable para el monstruo. Actualmente el enemigo entra hasta la habitación, haciendo que la supervivencia sea injustamente compleja.
+
+Sistema de Respawn / Checkpoint: 
+Evitar el respawn instantáneo sobre el punto exacto de muerte. Implementar reinicio desde el punto de inicio del día actual (por ejemplo: la cama del jugador) para mantener la coherencia narrativa.
+
+Mecanica de Sigilo / Escondites (Closets Quirurgicos):
+Aprovechar la reciente incorporación de los armarios/closets quirúrgicos en la escenografía para habilitarlos como puntos interactivos de escondite temporal entre la sala de notas y el cuarto principal, dándole variabilidad a las persecuciones en momentos de alta dificultad.
+
+
