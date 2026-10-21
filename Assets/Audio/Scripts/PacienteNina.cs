@@ -39,7 +39,10 @@ public class PacienteNina : MonoBehaviour
         foreach (var s in FindObjectsByType<AudioSource>())
             if (s.outputAudioMixerGroup != null && s.outputAudioMixerGroup.name == "SFX") { sfx = s.outputAudioMixerGroup; break; }
         fuenteLlanto = gameObject.AddComponent<AudioSource>();
-        fuenteLlanto.outputAudioMixerGroup = sfx; fuenteLlanto.clip = llanto; fuenteLlanto.loop = true;
+        AudioMixerGroup voz = null;
+        foreach (var s2 in FindObjectsByType<AudioSource>())
+            if (s2.outputAudioMixerGroup != null && s2.outputAudioMixerGroup.name == "Voz") { voz = s2.outputAudioMixerGroup; break; }
+        fuenteLlanto.outputAudioMixerGroup = voz != null ? voz : sfx; // llanto de Kiara = voz real -> grupo Voz fuenteLlanto.clip = llanto; fuenteLlanto.loop = true;
         fuenteLlanto.spatialBlend = 1f; fuenteLlanto.rolloffMode = AudioRolloffMode.Linear;
         fuenteLlanto.minDistance = 2.5f; fuenteLlanto.maxDistance = 18f; fuenteLlanto.dopplerLevel = 0f;
         fuenteLlanto.volume = volumenLlanto;

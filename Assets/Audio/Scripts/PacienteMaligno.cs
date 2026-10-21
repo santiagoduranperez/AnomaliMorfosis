@@ -62,7 +62,10 @@ public class PacienteMaligno : MonoBehaviour
         if (susurros != null) fuenteSusurros.Play();
         fuenteHuesos = Fuente(sfx, 1f, 1f, 16f, 0.8f);
         fuenteGrito = Fuente(sfx, 0.4f, 4f, 45f, 1f); fuenteGrito.ignoreListenerPause = true;
-        fuenteAmenaza = Fuente(sfx, 0f, 1f, 50f, 1f); fuenteAmenaza.ignoreListenerPause = true; // "te matare" en 2D, como al oido
+        AudioMixerGroup voz = null;
+        foreach (var s2 in FindObjectsByType<AudioSource>())
+            if (s2.outputAudioMixerGroup != null && s2.outputAudioMixerGroup.name == "Voz") { voz = s2.outputAudioMixerGroup; break; }
+        fuenteAmenaza = Fuente(voz != null ? voz : sfx, 0f, 1f, 50f, 1f); // voz de Kiara -> grupo Voz fuenteAmenaza.ignoreListenerPause = true; // "te matare" en 2D, como al oido
         musica = FindAnyObjectByType<MusicaAdaptativa>(); // suena aunque todo este en silencio
 
         if (cuerpo != null) cuerpo.enabled = false; // escondemos la capsula original
