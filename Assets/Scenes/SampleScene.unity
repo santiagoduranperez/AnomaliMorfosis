@@ -18911,6 +18911,7 @@ MonoBehaviour:
   mezclaTension: {x: 0.35, y: 0.7, z: 0}
   mezclaPersecucion: {x: 0.15, y: 0.5, z: 0.8}
   volumenGeneral: 0.8
+  refuerzoPeligro: 1.35
 --- !u!1 &512571621
 GameObject:
   m_ObjectHideFlags: 0
@@ -75141,9 +75142,9 @@ Transform:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1950142586}
   serializedVersion: 2
-  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -0.8, y: 0.25, z: 1}
-  m_LocalScale: {x: 1, y: 0.5, z: 2}
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: -1.0069985, y: 0.89588934, z: -0.3223635}
+  m_LocalScale: {x: 1.6408087, y: 2.3715281, z: 2.9628377}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 1951128203}
@@ -75167,7 +75168,7 @@ MeshRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1950142586}
-  m_Enabled: 1
+  m_Enabled: 0
   m_CastShadows: 1
   m_ReceiveShadows: 1
   m_DynamicOccludee: 1
