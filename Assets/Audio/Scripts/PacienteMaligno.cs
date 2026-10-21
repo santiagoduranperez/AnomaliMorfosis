@@ -24,15 +24,15 @@ public class PacienteMaligno : MonoBehaviour
     public float esperaEntreGritos = 12f;
     public bool congelarSiLoMiras = false; // apagado: asi te persigue siempre
     public float cadaCuantoAmenaza = 18f;   // repite "te matare" mientras te persigue
-    public float cadaCuantoParpadea = 5f;
-    public float distanciaParpadeo = 1.8f;
+    public float cadaCuantoParpadea = 10f; // QA Uxia 20/10: antes 5 (se sentia injusto)
+    public float distanciaParpadeo = 1.2f; // antes 1.8
 
     NPCDialogo npc; Transform jugador; Camera cam; Renderer cuerpo;
-    AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito;
+    AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito, fuenteAmenaza; MusicaAdaptativa musica;
     Transform ojos, figura, cabeza, hombroI, hombroD; Light luzOjos;
     float tSacudon; Quaternion rotCabezaObjetivo = Quaternion.Euler(0f, 0f, 35f);
     bool detectado, gritando;
-    float tUltimoGrito = -99f, tPaso, tParpadeo, tAmenaza;
+    float tUltimoGrito = -99f, tPaso, tParpadeo, tAmenaza; bool amenazaPendiente;
     Vector3 posAnterior; int vidaAnterior = -1;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -61,7 +61,12 @@ public class PacienteMaligno : MonoBehaviour
         fuenteSusurros = Fuente(sfx, 1f, 1f, 14f, 0.9f); fuenteSusurros.loop = true; fuenteSusurros.clip = susurros;
         if (susurros != null) fuenteSusurros.Play();
         fuenteHuesos = Fuente(sfx, 1f, 1f, 16f, 0.8f);
-        fuenteGrito = Fuente(sfx, 0.6f, 3f, 40f, 1f); fuenteGrito.ignoreListenerPause = true; // suena aunque todo este en silencio
+        fuenteGrito = Fuente(sfx, 0.4f, 4f, 45f, 1f); fuenteGrito.ignoreListenerPause = true;
+        AudioMixerGroup voz = null;
+        foreach (var s2 in FindObjectsByType<AudioSource>())
+            if (s2.outputAudioMixerGroup != null && s2.outputAudioMixerGroup.name == "Voz") { voz = s2.outputAudioMixerGroup; break; }
+        fuenteAmenaza = Fuente(voz != null ? voz : sfx, 0f, 1f, 50f, 1f); // voz de Kiara -> grupo Voz fuenteAmenaza.ignoreListenerPause = true; // "te matare" en 2D, como al oido
+        musica = FindAnyObjectByType<MusicaAdaptativa>(); // suena aunque todo este en silencio
 
         if (cuerpo != null) cuerpo.enabled = false; // escondemos la capsula original
         CrearFigura();
@@ -169,10 +174,14 @@ public class PacienteMaligno : MonoBehaviour
         else if (detectado && dist > npc.rangoDeteccion * 1.6f) detectado = false;
 
         // Amenaza "te matare... jajaja" mientras te persigue
-        if (detectado && !gritando && teMatare != null)
+        if (amenazaPendiente || (detectado && !gritando && teMatare != null))
         {
             tAmenaza -= Time.deltaTime;
-            if (tAmenaza <= 0f) { fuenteGrito.PlayOneShot(teMatare); tAmenaza = cadaCuantoAmenaza; }
+            if (tAmenaza <= 0f && teMatare != null)
+            {
+                StartCoroutine(Amenazar()); tAmenaza = cadaCuantoAmenaza; amenazaPendiente = false;
+                Debug.Log("PacienteMaligno: TE MATARE (voz de Kiara)");
+            }
         }
 
         // Huesos crujiendo mientras se mueve
@@ -243,7 +252,7 @@ public class PacienteMaligno : MonoBehaviour
         luzOjos.intensity = 6f;
         if (grito != null) fuenteGrito.PlayOneShot(grito);
         Debug.Log("PacienteMaligno: GRITO");
-        tAmenaza = 3.2f; // despues del grito, a los 3 s: "te matare"
+        tAmenaza = 2.9f; amenazaPendiente = true; // despues del grito: "te matare" (suena aunque escapes)
         yield return new WaitForSeconds(0.6f);
         gritando = false;
     }
@@ -264,6 +273,19 @@ public class PacienteMaligno : MonoBehaviour
         hombroI.localEulerAngles = new Vector3(Mathf.Sin(t * 1.3f) * 12f + Random.Range(-temblor, temblor), 0f, -4f);
         hombroD.localEulerAngles = new Vector3(Mathf.Sin(t * 1.3f + 2f) * 12f + Random.Range(-temblor, temblor), 0f, 4f);
         figura.localPosition = detectado ? Random.insideUnitSphere * 0.02f : Vector3.zero;
+    }
+
+    // "te matare" de Kiara: suena al frente y la musica baja mientras habla (ducking)
+    IEnumerator Amenazar()
+    {
+        fuenteAmenaza.PlayOneShot(teMatare);
+        if (musica != null)
+        {
+            float original = musica.volumenGeneral;
+            musica.volumenGeneral = original * 0.3f;
+            yield return new WaitForSeconds(teMatare.length * 0.8f);
+            musica.volumenGeneral = original;
+        }
     }
 
     IEnumerator Parpadear()
