@@ -43,6 +43,24 @@ public class VozEventos : MonoBehaviour
     private float ultimoPaciente = -999f;
     private float volumenMusicaDb;
 
+    // Si no se arrastraron los clips en el Inspector, se cargan solos de Resources/Voz
+    void Start()
+    {
+        if (expedienteDia1 == null) expedienteDia1 = Resources.Load<AudioClip>("Voz/Voz_Kiara_01");
+        if (expedienteDia7 == null) expedienteDia7 = Resources.Load<AudioClip>("Voz/Voz_Kiara_05");
+        if (frasesPaciente == null || frasesPaciente.Length == 0 || frasesPaciente[0] == null)
+            frasesPaciente = Cargar("Voz/Voz_Kiara_02", "Voz/Voz_Uxia_03");
+        if (frasesAltavoz == null || frasesAltavoz.Length == 0 || frasesAltavoz[0] == null)
+            frasesAltavoz = Cargar("Voz/Voz_Uxia_04", "Voz/Voz_Uxia_06");
+    }
+
+    AudioClip[] Cargar(params string[] rutas)
+    {
+        var lista = new System.Collections.Generic.List<AudioClip>();
+        foreach (var r in rutas) { var c = Resources.Load<AudioClip>(r); if (c != null) lista.Add(c); }
+        return lista.ToArray();
+    }
+
     void Update()
     {
         GameManagerHistoria gm = GameManagerHistoria.Instance;
