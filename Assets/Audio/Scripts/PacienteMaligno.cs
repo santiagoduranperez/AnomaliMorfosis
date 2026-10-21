@@ -24,8 +24,8 @@ public class PacienteMaligno : MonoBehaviour
     public float esperaEntreGritos = 12f;
     public bool congelarSiLoMiras = false; // apagado: asi te persigue siempre
     public float cadaCuantoAmenaza = 18f;   // repite "te matare" mientras te persigue
-    public float cadaCuantoParpadea = 5f;
-    public float distanciaParpadeo = 1.8f;
+    public float cadaCuantoParpadea = 10f; // QA Uxia 20/10: antes 5 (se sentia injusto)
+    public float distanciaParpadeo = 1.2f; // antes 1.8
 
     NPCDialogo npc; Transform jugador; Camera cam; Renderer cuerpo;
     AudioSource fuenteSusurros, fuenteHuesos, fuenteGrito, fuenteAmenaza; MusicaAdaptativa musica;
