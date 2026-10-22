@@ -16,6 +16,7 @@ public class PersonajePrincipal : MonoBehaviour
     Transform figura, torso, cabeza, hombroI, hombroD, piernaI, piernaD; Transform[] bultos;
     Material piel, matOjos; Light luzOjos;
     AudioSource respN, respM, fxHuesos;
+    Transform carpetaDeformidades;
     float m, mObjetivo, fase, tHueso, tSacudon; Vector3 posAnterior; Quaternion sacudon = Quaternion.identity;
 
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
@@ -112,6 +113,11 @@ public class PersonajePrincipal : MonoBehaviour
     void Update()
     {
         if (figura == null) return;
+        // La deformidad "Capsule" del dia 16 tapaba la figura nueva (que ya muestra la forma final): se oculta
+        if (carpetaDeformidades == null) carpetaDeformidades = transform.Find("deformacionesfolder");
+        if (carpetaDeformidades != null)
+            foreach (var r in carpetaDeformidades.GetComponentsInChildren<MeshRenderer>())
+                if (r.enabled && r.gameObject.name.StartsWith("Capsule")) r.enabled = false;
         mObjetivo = CalcularMutacion();
         if (!Mathf.Approximately(m, mObjetivo)) { m = Mathf.MoveTowards(m, mObjetivo, Time.deltaTime * 0.3f); AplicarMutacion(); }
 

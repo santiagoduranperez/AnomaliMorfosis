@@ -334,7 +334,7 @@ public class GameManagerHistoria : MonoBehaviour
         if (diaActual >= 16)
         {
             if (puntoRespawnDia7 != null)
-                jugadorTransform.position = puntoRespawnDia7.position;
+                MoverJugador(puntoRespawnDia7.position);
 
             AtmospheraDia16 atmosfera = FindAnyObjectByType<AtmospheraDia16>();
             if (atmosfera != null)
@@ -345,7 +345,7 @@ public class GameManagerHistoria : MonoBehaviour
         else
         {
             if (puntoRespawnOriginal != null)
-                jugadorTransform.position = puntoRespawnOriginal.position;
+                MoverJugador(puntoRespawnOriginal.position);
         }
 
         ActualizarPapelesEnEscena();
@@ -374,6 +374,17 @@ public class GameManagerHistoria : MonoBehaviour
         yield return new WaitForSecondsRealtime(6f);
 
         procesandoTransicion = false;
+    }
+
+    // Arreglo (Santiago, 22/10): con un CharacterController activo, cambiar transform.position a veces
+    // no tiene efecto (el controller devuelve al jugador a su lugar). Se apaga un instante y se mueve.
+    private void MoverJugador(Vector3 destino)
+    {
+        if (jugadorTransform == null) return;
+        var cc = jugadorTransform.GetComponent<CharacterController>();
+        if (cc != null) cc.enabled = false;
+        jugadorTransform.position = destino;
+        if (cc != null) cc.enabled = true;
     }
 
     private void AplicarMutacionYStats()
@@ -488,11 +499,11 @@ public class GameManagerHistoria : MonoBehaviour
         vidaActual = vidaMaxima;
         if (diaActual >= 16)
         {
-            if (puntoRespawnDia7 != null) jugadorTransform.position = puntoRespawnDia7.position;
+            if (puntoRespawnDia7 != null) MoverJugador(puntoRespawnDia7.position);
         }
         else
         {
-            if (puntoRespawnOriginal != null) jugadorTransform.position = puntoRespawnOriginal.position;
+            if (puntoRespawnOriginal != null) MoverJugador(puntoRespawnOriginal.position);
         }
         ActualizarEstadoUI();
 
