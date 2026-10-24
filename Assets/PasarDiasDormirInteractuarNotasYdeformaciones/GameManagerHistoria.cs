@@ -4,10 +4,16 @@ using UnityEngine.UI;
 using TMPro;
 using UnityEngine.InputSystem;
 using UnityEngine.Rendering;
+using UnityEngine.SceneManagement;
 
 public class GameManagerHistoria : MonoBehaviour
 {
     public static GameManagerHistoria Instance;
+
+    // Agregado (Santiago, 24/10): reintento desde el subsuelo. Si el jugador muere en el subsuelo
+    // (dia 16) se muestra la escena GameOver de Giuli; su boton Retry recarga el juego y, con esta
+    // marca, el jugador vuelve al comienzo del subsuelo en vez de empezar de nuevo desde el dia 1.
+    public static bool reintentarDesdeSubsuelo = false;
 
     [Header("Progreso de Historia")]
     public int diaActual = 1;
@@ -105,6 +111,24 @@ public class GameManagerHistoria : MonoBehaviour
         CrearTemplateEfectoAnomalia();
 
         ActualizarEmisionParticulasMutacion();
+
+        if (reintentarDesdeSubsuelo) StartCoroutine(PrepararReintentoSubsuelo());
+    }
+
+    private IEnumerator PrepararReintentoSubsuelo()
+    {
+        yield return null; // un frame, para que el resto de la escena termine su Start
+        reintentarDesdeSubsuelo = false;
+        for (int d = 2; d <= 16; d++) { diaActual = d; AplicarMutacionYStats(); } // el cuerpo ya transformado
+        papelesRecolectadosHoy = 0;
+        hablasteConNpcHoy = false;
+        vidaActual = vidaMaxima;
+        modoDashDesbloqueado = true;
+        if (puntoRespawnDia7 != null) MoverJugador(puntoRespawnDia7.position);
+        AtmospheraDia16 atmosfera = FindAnyObjectByType<AtmospheraDia16>();
+        if (atmosfera != null) atmosfera.ActivarAtmosceraJefe();
+        ActualizarPapelesEnEscena();
+        ActualizarEstadoUI();
     }
 
     // Agregado el 10/09: crea (una sola vez, por codigo, sin depender de ningun Prefab
@@ -476,6 +500,29 @@ public class GameManagerHistoria : MonoBehaviour
     private IEnumerator RutinaGameOver()
     {
         procesandoGameOver = true;
+
+        // Agregado (Santiago, 24/10): en el subsuelo (desafio final) morir muestra la pantalla
+        // GameOver de Giuli. En la instalacion se sigue reapareciendo en la celda como antes.
+        if (diaActual >= 16)
+        {
+            reintentarDesdeSubsuelo = true;
+            if (fadeScreenGroup != null)
+            {
+                fadeScreenGroup.gameObject.SetActive(true);
+                fadeScreenGroup.transform.SetAsLastSibling();
+                float t = 0f;
+                while (t < duracionFade)
+                {
+                    t += Time.unscaledDeltaTime;
+                    fadeScreenGroup.alpha = Mathf.Lerp(0f, 1f, t / duracionFade);
+                    yield return null;
+                }
+            }
+            Cursor.lockState = CursorLockMode.None;
+            Cursor.visible = true;
+            SceneManager.LoadScene("GameOver");
+            yield break;
+        }
         Debug.Log("🔴 GAME OVER: la vida llego a 0. Reiniciando con vida llena...");
 
         if (fadeScreenGroup != null)

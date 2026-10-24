@@ -20,6 +20,7 @@ public class PantallaFinal : MonoBehaviour
 
     public void VolverAlMenu()
     {
+        GameManagerHistoria.reintentarDesdeSubsuelo = false; // desde el menu se empieza una partida nueva
         SceneManager.LoadScene(escenaMenu);
     }
 }
