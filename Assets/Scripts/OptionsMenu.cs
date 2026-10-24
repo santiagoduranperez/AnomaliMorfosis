@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class OpcionesMenu : MonoBehaviour
+public class OptionsMenu : MonoBehaviour
 {
     public Slider sliderVolumen;
     public Toggle togglePantallaCompleta;
