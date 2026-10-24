@@ -7,6 +7,8 @@ public class MainMenu : MonoBehaviour
 
     public void Jugar()
     {
+        GameManagerHistoria.reintentarDesdeSubsuelo = false; // partida nueva desde el dia 1
+        Time.timeScale = 1f;
         SceneManager.LoadScene("SampleScene");
     }
 

@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.SceneManagement;
 
 public class TriggerVictoria : MonoBehaviour
 {
@@ -39,10 +40,12 @@ public class TriggerVictoria : MonoBehaviour
             textoMensajeVictoria.text = "¡ESCAPE EXITOSO!\nSobreviviste";
         }
 
-        // Frena el tiempo por completo y libera el cursor para la UI
-        Time.timeScale = 0f;
+        // Libera el cursor y pasa a la pantalla de Victoria de Giuli (Santiago, 24/10)
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
+        GameManagerHistoria.reintentarDesdeSubsuelo = false;
+        Time.timeScale = 1f;
+        SceneManager.LoadScene("Victory");
     }
 
 }
