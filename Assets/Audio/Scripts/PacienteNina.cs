@@ -24,6 +24,17 @@ public class PacienteNina : MonoBehaviour
     [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.AfterSceneLoad)]
     static void Instalar()
     {
+        InstalarEnEscena();
+        // Agregado (Santiago, 25/10): el juego ahora arranca en MainMenu y el Retry del Game Over recarga
+        // la escena, asi que tambien se instala cada vez que se carga una escena (no solo al abrir el juego).
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded -= AlCargarEscena;
+        UnityEngine.SceneManagement.SceneManager.sceneLoaded += AlCargarEscena;
+    }
+
+    static void AlCargarEscena(UnityEngine.SceneManagement.Scene escena, UnityEngine.SceneManagement.LoadSceneMode modo) { InstalarEnEscena(); }
+
+    static void InstalarEnEscena()
+    {
         foreach (var n in FindObjectsByType<NPCDialogo>())
             if (!n.esPeligroso && n.name.Contains("Amistoso") && n.GetComponent<PacienteNina>() == null)
                 n.gameObject.AddComponent<PacienteNina>();

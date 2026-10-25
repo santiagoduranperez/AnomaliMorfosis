@@ -68,6 +68,7 @@ public class EnemigoJefe : MonoBehaviour
 
     private Transform jugadorTransform;
     private EstadoEnemigo estadoActual = EstadoEnemigo.Persiguiendo;
+    public string Estado => estadoActual.ToString(); // Agregado (Santiago, 25/10): lo lee AnimacionJefe para disparar la animacion de ataque de Kiara
     private NavMeshAgent agent;
 
     // Timers de cooldown

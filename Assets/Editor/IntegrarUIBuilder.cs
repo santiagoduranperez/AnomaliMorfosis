@@ -3,6 +3,7 @@
 //  1) Prefab MenuPausa: conecta el campo panelPausa con su hijo "Panel" y mete los botones adentro.
 //  2) SampleScene: coloca el MenuPausa (si no esta) para que Esc pause el juego.
 //  3) Build Settings: MainMenu primero, despues SampleScene, GameOver y Victory.
+//  4) GameOver y Victory: agrega el EventSystem si falta (sin el, los botones no responden).
 // Despues: Ctrl+S.
 using System.Linq;
 using UnityEditor;
@@ -76,6 +77,32 @@ public static class IntegrarUIBuilder
             .ToArray();
         informe += "- Build: MainMenu, SampleScene, GameOver, Victory.\n";
 
+        informe += RepararEventSystem("Assets/Scenes/Victory.unity");
+        informe += RepararEventSystem("Assets/Scenes/GameOver.unity");
+
         EditorUtility.DisplayDialog("Integrar UI (Giuli)", "Listo:\n" + informe + "\nGuarda con Ctrl+S.", "OK");
+    }
+
+    // Una escena con botones necesita un EventSystem para recibir los clics (a Victory le faltaba)
+    private static string RepararEventSystem(string ruta)
+    {
+        if (AssetDatabase.LoadAssetAtPath<SceneAsset>(ruta) == null) return "";
+        var activa = EditorSceneManager.GetActiveScene();
+        bool yaAbierta = activa.path == ruta;
+        var escena = yaAbierta ? activa : EditorSceneManager.OpenScene(ruta, OpenSceneMode.Additive);
+        bool tiene = false;
+        foreach (var go in escena.GetRootGameObjects())
+            if (go.GetComponentInChildren<UnityEngine.EventSystems.EventSystem>(true) != null) tiene = true;
+        string r = "";
+        if (!tiene)
+        {
+            var es = new GameObject("EventSystem", typeof(UnityEngine.EventSystems.EventSystem),
+                                    typeof(UnityEngine.InputSystem.UI.InputSystemUIInputModule));
+            UnityEngine.SceneManagement.SceneManager.MoveGameObjectToScene(es, escena);
+            EditorSceneManager.SaveScene(escena);
+            r = "- " + escena.name + ": agregado EventSystem (los botones ya responden).\n";
+        }
+        if (!yaAbierta) EditorSceneManager.CloseScene(escena, true);
+        return r;
     }
 }
