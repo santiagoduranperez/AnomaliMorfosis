@@ -279,7 +279,7 @@ Transform:
   m_Children:
   - {fileID: 3775215641579473439}
   - {fileID: 2790041196103719361}
-  - {fileID: 2663540249293771400}
+  - {fileID: 6085917557153659487}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!33 &3595923177341287093
@@ -400,7 +400,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemigoJefe
   velocidadBase: 2.5
-  danoAlTocar: 2
+  danoAlTocar: 1
   rangoDeteccion: 10
   puedeTaclear: 1
   rangoTacleada: 6
@@ -567,7 +567,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b343ea2e2d045943ab630e92f59a804, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::AnimacionJefe
-  animator: {fileID: 8221012612824008946}
+  animator: {fileID: 186240856712880165}
   suavizado: 8
 --- !u!1 &6998589568006410294
 GameObject:
@@ -873,7 +873,7 @@ Transform:
   - {fileID: 600551871932315599}
   m_Father: {fileID: 2148368085060990771}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!1001 &2557044873951786339
+--- !u!1001 &6052623199958048180
 PrefabInstance:
   m_ObjectHideFlags: 0
   serializedVersion: 2
@@ -962,13 +962,13 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 0887b61523cd21040a69893898aa9e33, type: 3}
---- !u!4 &2663540249293771400 stripped
-Transform:
-  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0887b61523cd21040a69893898aa9e33, type: 3}
-  m_PrefabInstance: {fileID: 2557044873951786339}
-  m_PrefabAsset: {fileID: 0}
---- !u!95 &8221012612824008946 stripped
+--- !u!95 &186240856712880165 stripped
 Animator:
   m_CorrespondingSourceObject: {fileID: 5866666021909216657, guid: 0887b61523cd21040a69893898aa9e33, type: 3}
-  m_PrefabInstance: {fileID: 2557044873951786339}
+  m_PrefabInstance: {fileID: 6052623199958048180}
+  m_PrefabAsset: {fileID: 0}
+--- !u!4 &6085917557153659487 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: -8679921383154817045, guid: 0887b61523cd21040a69893898aa9e33, type: 3}
+  m_PrefabInstance: {fileID: 6052623199958048180}
   m_PrefabAsset: {fileID: 0}

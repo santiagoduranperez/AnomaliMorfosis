@@ -125,6 +125,7 @@ public class GameManagerHistoria : MonoBehaviour
         vidaActual = vidaMaxima;
         modoDashDesbloqueado = true;
         if (puntoRespawnDia7 != null) MoverJugador(puntoRespawnDia7.position);
+        OcultarPrompt(); // no arrastrar carteles del dia 1 al subsuelo
         AtmospheraDia16 atmosfera = FindAnyObjectByType<AtmospheraDia16>();
         if (atmosfera != null) atmosfera.ActivarAtmosceraJefe();
         ActualizarPapelesEnEscena();
@@ -475,13 +476,22 @@ public class GameManagerHistoria : MonoBehaviour
 
     // Resta vida al jugador (ej al tocar a un paciente peligroso) La vida no se
     // recupera sola, solo vuelve al maximo al dormir o al llegar a 0
+    // Agregado (Santiago, 25/10): un solo contacto con un jefe entraba por varios colliders a la vez
+    // (cuerpo + ojos contra CharacterController + capsula) y sacaba toda la vida de golpe.
+    // Despues de recibir dano, el jugador queda invulnerable un instante (i-frames).
+    [Header("Invulnerabilidad tras recibir dano")]
+    public float invulnerabilidadTrasDano = 1.5f;
+    private float tiempoUltimoDano = -10f;
+
     public void RecibirDano(int cantidad)
     {
+        if (Time.time - tiempoUltimoDano < invulnerabilidadTrasDano) return;
         // Ignora el daño si el jugador esta en medio de un Dash (invulnerable)
         if (PlayerMovement.Instance != null && PlayerMovement.Instance.EsInvulnerable)
         {
             return;
         }
+        tiempoUltimoDano = Time.time;
 
         vidaActual = Mathf.Max(0, vidaActual - cantidad);
         ActualizarEstadoUI();
