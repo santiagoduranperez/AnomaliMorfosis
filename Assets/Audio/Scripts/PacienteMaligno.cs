@@ -94,11 +94,23 @@ public class PacienteMaligno : MonoBehaviour
         return a;
     }
 
+    // Agregado (Santiago, 25/10): en el .exe Unity no incluye los shaders que ningun material del proyecto usa
+    // (URP/Unlit), asi que Shader.Find devolvia null y el paciente quedaba invisible (se escuchaba y hacia dano).
+    // Si falta el shader, se usa el del material por defecto de URP, que siempre viene en el build.
+    static Shader ShaderSeguro(string nombre)
+    {
+        var sh = Shader.Find(nombre);
+        if (sh != null) return sh;
+        var tmp = GameObject.CreatePrimitive(PrimitiveType.Cube);
+        tmp.SetActive(false);
+        sh = tmp.GetComponent<Renderer>().sharedMaterial.shader;
+        Destroy(tmp);
+        return sh;
+    }
+
     Material Mat(Color c, bool lit)
     {
-        var sh = Shader.Find(lit ? "Universal Render Pipeline/Lit" : "Universal Render Pipeline/Unlit");
-        if (sh == null) sh = Shader.Find("Standard");
-        var m = new Material(sh); m.color = c;
+        var m = new Material(ShaderSeguro(lit ? "Universal Render Pipeline/Lit" : "Universal Render Pipeline/Unlit")); m.color = c;
         if (m.HasProperty("_Smoothness")) m.SetFloat("_Smoothness", 0.35f);
         return m;
     }
@@ -153,8 +165,7 @@ public class PacienteMaligno : MonoBehaviour
     {
         ojos = new GameObject("Ojos_Malignos").transform; ojos.SetParent(cabeza != null ? cabeza : transform, false);
         ojos.localPosition = new Vector3(0f, 0.22f, 0.15f);
-        var sh = Shader.Find("Universal Render Pipeline/Unlit"); if (sh == null) sh = Shader.Find("Sprites/Default");
-        var mat = new Material(sh); mat.color = new Color(1f, 0.02f, 0.02f);
+        var mat = new Material(ShaderSeguro("Universal Render Pipeline/Unlit")); mat.color = new Color(1f, 0.02f, 0.02f);
         foreach (float x in new[] { -0.16f, 0.16f })
         {
             var o = GameObject.CreatePrimitive(PrimitiveType.Sphere); Destroy(o.GetComponent<Collider>());
