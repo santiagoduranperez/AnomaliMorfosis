@@ -1,0 +1,52 @@
+INFORME DE QA TESTING — AVANCE PARCIAL 2 
+
+Proyecto: Anomalimorfosis
+Tester: Uxia Abrigo
+Duración aproximada: 15 - 20 minutos
+
+1. REVISIÓN Y VALIDACIÓN DE LA BUILD 
+
+Estado de la Build en Repositorio:
+
+- Mecánicas del Subsuelo: En el día final (subsuelo) NO hay que buscar notas. Se habilita la habilidad de 'Dash' con la tecla SHIFT, la cual funciona correctamente.
+
+- Paredes Frágiles: Las paredes más transparentes ("paredes frágiles") se pueden atravesar al usar la habilidad de Dash con la tecla Shift.
+
+- Renderizado de Monstruos: Todos los monstruos se ven completos (de cabeza a pies sobre el suelo) y la IA de persecución/daño responde adecuadamente.
+
+- UI y Menús: La interfaz de usuario (UI) se ve excelente y todos los botones responden a la perfección.
+
+
+
+2. BUGS Y OPORTUNIDADES DE MEJORA
+
+- BUG-01: Cámara en Subsuelo
+En la sección final del subsuelo, la cámara del personaje está demasiado pegada/cercana, dando una perspectiva más cercana a primera persona. Recomendaría alejar la distancia de cámara para mejorar el campo de visión.
+
+- BUG-02: Escalado de UI en Pantallas Finales (Victoria / Muerte Subsuelo)
+Las pantallas de Victoria y Muerte en el subsuelo no ocupan el 100% de la ventana/pantalla, estas quedan centradas en un recuadro, a diferencia de la pantalla de muerte del hospital que sí hace un fill completo.
+
+- BUG-03: Colisión en notas pegadas a la pared (General)
+Se destaca una dificultad general para recoger las notas colgadas en las paredes en distintos sectores del mapa, esto puede ser por el hitbox del personaje en estado de transformación a monstruo.
+
+- BUG-04: Desnivel en escaleras de la Sala 3
+En ambos cuartos de la Sala 3, la unión de las escaleras con el piso no es precisa. Además, al personaje le cuesta salir de estas escaleras ya que, en forma de monstruo, no posee mecánica de salto. Al intentar entrar o salir suele quedar trabado, requiriendo que la colisión de la puerta lo empuje o tener que buscar un punto milimétrico de paso.
+
+- BUG-05: Atasco de Enemigos en Pasillos
+Se observa que los jefes finales tienden a temblar o trabarse levemente en algunas esquinas o giros cerrados del laberinto al intentar la persecución.
+
+
+3. OBSERVACIONES
+
+- OBS-01: Mesitas / Bandejas Quirúrgicas (Prop de Hospital)
+Las mesitas/bandejas quirúrgicas móviles conservan un bloque/collider visible en el centro que le resta prolijidad estética al entorno del hospital, Recomendaría pintar o retirar la malla visual del bloque o ajustar el material para que no rompa la ambientación visual.
+
+
+
+4. RESUMEN DE PUNTOS Y CONCLUSIÓN
+
+- Excelente avance en mecánicas de movimiento (habilidad de Dash y  trasladarse atreves de paredes frágiles).
+
+- La IA y el loop de juego identifican correctamente la muerte y la reaparición del jugador.
+
+- Los menús, el audio, materiales y las animaciones mantienen una excelente calidad general.
