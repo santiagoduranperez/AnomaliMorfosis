@@ -54089,7 +54089,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 35179865de7452948a5e39baca4bf056, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::GameManagerHistoria
-  diaActual: 15
+  diaActual: 1
   papelesRecolectadosHoy: 0
   papelesGameObjects:
   - {fileID: 894970449}
