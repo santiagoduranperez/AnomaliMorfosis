@@ -128,6 +128,7 @@ public class GameManagerHistoria : MonoBehaviour
         OcultarPrompt(); // no arrastrar carteles del dia 1 al subsuelo
         AtmospheraDia16 atmosfera = FindAnyObjectByType<AtmospheraDia16>();
         if (atmosfera != null) atmosfera.ActivarAtmosceraJefe();
+        MostrarPromptTemporal("Shift: dash  -  atravesa los muros agrietados y llega a la salida", 7f); // Agregado (Santiago, 30/10)
         ActualizarPapelesEnEscena();
         ActualizarEstadoUI();
     }
@@ -366,6 +367,7 @@ public class GameManagerHistoria : MonoBehaviour
             {
                 atmosfera.ActivarAtmosceraJefe();
             }
+            MostrarPromptTemporal("Shift: dash  -  atravesa los muros agrietados y llega a la salida", 7f); // Agregado (Santiago, 30/10)
         }
         else
         {
